@@ -1,0 +1,11 @@
+<!-- Snippet 7: Gradient Button -->
+<button class="btn-gradient">Submit</button>
+
+<style>
+.btn-gradient { padding: 10px 25px; font-size: 16px; border: none; border-radius: 25px; background: linear-gradient(45deg, #ff512f, #dd2476); color: white; cursor: pointer; transition: transform 0.2s; }
+.btn-gradient:hover { transform: scale(1.1); }
+</style>
+
+<script>
+document.querySelector(".btn-gradient").addEventListener("click", () => alert("Gradient Button Clicked!"));
+</script>
