@@ -1,0 +1,18 @@
+<!-- Snippet 20: Glass Effect Navbar -->
+<nav class="navbar-glass">
+  <a href="#">Home</a>
+  <a href="#">Services</a>
+  <a href="#">Portfolio</a>
+  <a href="#">Contact</a>
+</nav>
+
+<style>
+.navbar-glass { display: flex; justify-content: center; gap: 20px; padding: 15px; background: rgba(255,255,255,0.2); backdrop-filter: blur(10px); border-radius: 10px; font-family: Arial; margin: 20px; }
+.navbar-glass a { text-decoration: none; color: white; padding: 8px 12px; transition: background 0.3s; }
+.navbar-glass a:hover { background: rgba(255,255,255,0.3); border-radius: 5px; }
+body { background: linear-gradient(135deg,#667eea,#764ba2); display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+</style>
+
+<script>
+document.querySelectorAll(".navbar-glass a").forEach(a => a.addEventListener("click", e => e.preventDefault()));
+</script>
