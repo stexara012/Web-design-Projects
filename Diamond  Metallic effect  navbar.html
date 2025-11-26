@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navbar 9 - Diamond Metallic</title>
+<style>
+body { margin:0; font-family:Arial; height:2000px; background:#111; }
+.navbar {
+  position: fixed;
+  top:0;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  gap:25px;
+  padding:15px;
+  background: linear-gradient(45deg, #ccc, #eee, #bbb);
+  box-shadow: 0 0 20px #fff;
+  border-bottom-left-radius:10px;
+  border-bottom-right-radius:10px;
+  z-index:1000;
+}
+.navbar a {
+  text-decoration:none;
+  font-weight:bold;
+  padding:8px 12px;
+  color:#444;
+  transition: all 0.3s;
+}
+.navbar a:hover {
+  color:#fff;
+  text-shadow: 0 0 5px #fff, 0 0 10px #ddd;
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="#">Home</a>
+  <a href="#">About</a>
+  <a href="#">Services</a>
+  <a href="#">Contact</a>
+</nav>
+
+<div style="margin-top:100px;padding:20px;color:white;">
+<h1>Diamond / Metallic Navbar</h1>
+<p>Hover links simulate metallic/diamond shine effect.</p>
+</div>
+
+</body>
+</html>
