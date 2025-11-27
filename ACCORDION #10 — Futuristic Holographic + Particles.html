@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Accordion 10</title>
+<style>
+body {
+    background: #0d0d1a;
+    font-family: 'Orbitron', sans-serif;
+    padding: 50px;
+    color: #fff;
+}
+
+/* Container */
+.accordion10-container {
+    width: 760px;
+    margin: auto;
+}
+
+/* Accordion Item */
+.accordion10-item {
+    background: rgba(255,255,255,0.03);
+    border-radius: 20px;
+    margin-bottom: 25px;
+    overflow: hidden;
+    position: relative;
+    backdrop-filter: blur(15px) saturate(180%);
+    border: 1px solid rgba(255,255,255,0.2);
+    box-shadow: 0 0 15px rgba(0,255,255,0.2), 0 8px 20px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    cursor: pointer;
+}
+
+/* Hover Lift & Glow */
+.accordion10-item:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 0 30px #0ff, 0 12px 25px rgba(0,255,255,0.4);
+}
+
+/* Header */
+.accordion10-header {
+    padding: 25px 30px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-weight: 600;
+    font-size: 18px;
+}
+
+/* Icon */
+.accordion10-header span {
+    font-size: 26px;
+    color: #0ff;
+    transition: transform 0.5s ease, color 0.4s ease;
+}
+
+/* Content container */
+.accordion10-content-wrapper {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.7s cubic-bezier(.25,.8,.25,1), padding 0.4s ease;
+    background: rgba(255,255,255,0.05);
+    clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);
+}
+
+/* Content */
+.accordion10-content {
+    padding: 0 30px 25px;
+    line-height: 1.6;
+    color: #a0ffff;
+    font-size: 16px;
+}
+
+/* OPEN STATE */
+.accordion10-item.open .accordion10-content-wrapper {
+    max-height: 500px;
+    padding: 20px 30px 25px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+}
+
+.accordion10-item.open .accordion10-header span {
+    transform: rotate(45deg) scale(1.1);
+    color: #ff6eff;
+}
+
+/* Particle effect */
+.accordion10-item::after {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(0,255,255,0.2) 1px, transparent 2px);
+    background-size: 20px 20px;
+    animation: particleMove 8s linear infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes particleMove {
+    0%{background-position:0 0}
+    50%{background-position:50px 50px}
+    100%{background-position:0 0}
+}
+</style>
+</head>
+<body>
+
+<div class="accordion10-container">
+
+    <div class="accordion10-item">
+        <div class="accordion10-header">
+            <h3>Holo Accordion #1</h3>
+            <span>+</span>
+        </div>
+        <div class="accordion10-content-wrapper">
+            <div class="accordion10-content">
+                <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus ac libero nec nisl sollicitudin fermentum.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion10-item">
+        <div class="accordion10-header">
+            <h3>Holo Accordion #2</h3>
+            <span>+</span>
+        </div>
+        <div class="accordion10-content-wrapper">
+            <div class="accordion10-content">
+                <p>Phasellus at erat in leo ultrices suscipit. Sed luctus, velit sit amet lacinia posuere, est est.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="accordion10-item">
+        <div class="accordion10-header">
+            <h3>Holo Accordion #3</h3>
+            <span>+</span>
+        </div>
+        <div class="accordion10-content-wrapper">
+            <div class="accordion10-content">
+                <p>Curabitur tincidunt sapien ut sem consequat, non vulputate leo ultrices. Aliquam erat volutpat.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+document.querySelectorAll(".accordion10-item").forEach(item => {
+    const header = item.querySelector(".accordion10-header");
+    const wrapper = item.querySelector(".accordion10-content-wrapper");
+
+    header.addEventListener("click", () => {
+
+        // Close other accordions
+        document.querySelectorAll(".accordion10-item").forEach(other => {
+            if (other !== item) {
+                other.classList.remove("open");
+                const w = other.querySelector(".accordion10-content-wrapper");
+                w.style.maxHeight = "0px";
+                w.style.padding = "0 30px 0";
+                w.style.clipPath = "polygon(0 0, 100% 0, 100% 0, 0 0)";
+            }
+        });
+
+        const open = item.classList.contains("open");
+        if(open) {
+            item.classList.remove("open");
+            wrapper.style.maxHeight = "0px";
+            wrapper.style.padding = "0 30px 0";
+            wrapper.style.clipPath = "polygon(0 0, 100% 0, 100% 0, 0 0)";
+        } else {
+            item.classList.add("open");
+            setTimeout(() => {
+                wrapper.style.maxHeight = wrapper.scrollHeight + "px";
+                wrapper.style.padding = "20px 30px 25px";
+                wrapper.style.clipPath = "polygon(0 0, 100% 0, 100% 100%, 0 100%)";
+            }, 20);
+        }
+    });
+});
+</script>
+
+</body>
+</html>
