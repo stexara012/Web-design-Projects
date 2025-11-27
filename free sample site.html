@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Free Sample Pack</title>
+
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+/* Cyber grid animated background */
+body {
+  background: #000;
+  overflow-x: hidden;
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(#00b7ff22 1px, transparent 1px),
+    linear-gradient(90deg, #00b7ff22 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridMove 12s linear infinite;
+  z-index: -1;
+  opacity: 0.35;
+}
+@keyframes gridMove {
+  from { transform: translateY(0); }
+  to { transform: translateY(40px); }
+}
+
+/* Tabs */
+.tab-btn {
+  padding: 10px 20px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: 0.3s;
+  background: #111;
+  border: 1px solid #333;
+}
+.tab-btn.active {
+  background: linear-gradient(90deg,#00b7ff,#8f00ff);
+}
+
+/* Slider */
+.vision-track {
+  position: relative;
+  height: 330px;
+  width: 40%;
+  margin: 0 auto;
+  perspective: 1300px;
+}
+.vision-slide {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  width: min(380px, 70vw);
+  opacity: 0.55;
+  transform-style: preserve-3d;
+  transition: transform .6s, opacity .5s;
+  pointer-events: none;
+}
+.vision-slide.is-active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Arrows */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 42px;
+  font-weight: bold;
+  color: #00bfff;
+  cursor: pointer;
+  z-index: 20;
+  user-select: none;
+  transition: 0.3s;
+  padding: 8px 14px;
+  background: #0009;
+  border-radius: 10px;
+}
+.arrow:hover {
+  background: #00bfff55;
+  color: white;
+}
+.arrow-left { left: -65px; }
+.arrow-right { right: -65px; }
+
+/* Neon hover effect */
+.slide-card {
+  background: rgba(255,255,255,0.04);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.06);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: 0.3s;
+}
+.slide-card:hover {
+  border: 1px solid #00b7ff;
+  box-shadow: 0 0 20px #00b7ff44;
+}
+
+/* Download button */
+.dl-btn {
+  display: inline-block;
+  padding: 6px 14px;
+  background: linear-gradient(90deg,#00b7ff,#8f00ff);
+  border-radius: 8px;
+  margin-top: 10px;
+  font-weight: 600;
+  transition: 0.3s;
+}
+.dl-btn:hover {
+  box-shadow: 0 0 12px #00b7ff;
+}
+
+/* Dots */
+.dot {
+  width: 9px;
+  height: 9px;
+  background:#222;
+  border-radius:50%;
+  transition: 0.3s;
+}
+.dot.active {
+  background:white;
+  transform: scale(1.4);
+}
+
+/* Mobile optimization */
+@media (max-width:768px) {
+  .vision-track { width:90%; height:310px; }
+  .vision-slide { width:80vw !important; }
+  .arrow-left { left:-40px; } .arrow-right { right:-40px; }
+}
+</style>
+</head>
+
+<body class="text-white">
+
+<header class="fixed top-0 left-0 right-0 z-20 p-4 bg-black/50 backdrop-blur-xl">
+  <div class="max-w-6xl mx-auto flex justify-between">
+    <h1 class="text-xl font-bold text-cyan-400">FREE SAMPLE PACK</h1>
+  </div>
+</header>
+
+<main class="pt-24">
+
+<section class="text-center max-w-3xl mx-auto">
+  <h2 class="text-4xl font-bold text-cyan-400">120 FREE PREMIUM SAMPLES</h2>
+</section>
+
+<!-- Tabs -->
+<div class="flex justify-center gap-4 mt-10" id="tabs">
+  <div class="tab-btn active" data-tab="hiphop">Hip Hop</div>
+  <div class="tab-btn" data-tab="trap">Trap</div>
+  <div class="tab-btn" data-tab="drill">Drill</div>
+  <div class="tab-btn" data-tab="techno">Techno</div>
+  <div class="tab-btn" data-tab="psychodelia">Psychodelia</div>
+  <div class="tab-btn" data-tab="boombap">Boom-Bap</div>
+</div>
+
+<script>
+  // ---------------- DOWNLOAD ----------------
+// Funkcija koja preuzima fajl preko fetch i blob
+async function handleDownload(e) {
+  e.preventDefault(); // sprečava default link ponašanje
+  const url = e.currentTarget.getAttribute("href");
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error("Network error");
+    const blob = await response.blob();
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = url.split("/").pop(); // uzima ime fajla iz URL-a
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(a.href); // oslobađa memoriju
+  } catch (err) {
+    console.error("Download failed:", err);
+  }
+}
+
+// Selektuje sve dugmiće sa klasom .dl-btn
+function initDownloads() {
+  document.querySelectorAll(".dl-btn").forEach(btn => {
+    btn.addEventListener("click", handleDownload);
+  });
+}
+
+// Pokreće funkciju nakon što su svi sample-ovi u DOM-u
+window.addEventListener("load", initDownloads);
+
+
+function sampleSlides(prefix, title) {
+  let html = "";
+  for (let i = 1; i <= 20; i++) {
+    html += `
+    <article class="vision-slide">
+      <div class="slide-card p-5">
+        <span class="text-xs bg-black/40 px-2 py-1 rounded">${title}</span>
+        <h3 class="text-lg font-bold mt-2">${title} Sample ${i}</h3>
+
+        <audio controls class="w-full mt-3" id="audio-${prefix}${i}">
+          <source src="samples/${prefix}/${i}.wav" type="audio/wav">
+        </audio>
+
+        <canvas width="300" height="60" class="mt-2" id="wave-${prefix}${i}"></canvas>
+
+        <a href="samples/${prefix}/${i}.wav" download class="dl-btn">
+          Download
+        </a>
+      </div>
+    </article>`;
+  }
+  return html;
+}
+</script>
+
+<!-- Slider Containers -->
+<div class="mt-10">
+
+  <!-- Hip Hop -->
+  <div class="tab-content" id="hiphop">
+    <div class="vision-track" id="track-hiphop">
+      <div class="arrow arrow-left" data-slider="hiphop">&#10094;</div>
+      <div class="arrow arrow-right" data-slider="hiphop">&#10095;</div>
+      <script>document.write(sampleSlides("hiphop","Hip Hop"))</script>
+    </div>
+    <div class="flex justify-center gap-2 mt-4" id="dots-hiphop"></div>
+  </div>
+
+  <!-- Trap -->
+  <div class="tab-content hidden" id="trap">
+    <div class="vision-track" id="track-trap">
+      <div class="arrow arrow-left" data-slider="trap">&#10094;</div>
+      <div class="arrow arrow-right" data-slider="trap">&#10095;</div>
+      <script>document.write(sampleSlides("trap","Trap"))</script>
+    </div>
+    <div class="flex justify-center gap-2 mt-4" id="dots-trap"></div>
+  </div>
+
+  <!-- Drill -->
+  <div class="tab-content hidden" id="drill">
+    <div class="vision-track" id="track-drill">
+      <div class="arrow arrow-left" data-slider="drill">&#10094;</div>
+      <div class="arrow arrow-right" data-slider="drill">&#10095;</div>
+      <script>document.write(sampleSlides("drill","Drill"))</script>
+    </div>
+    <div class="flex justify-center gap-2 mt-4" id="dots-drill"></div>
+  </div>
+
+  <!-- Techno -->
+  <div class="tab-content hidden" id="techno">
+    <div class="vision-track" id="track-techno">
+      <div class="arrow arrow-left" data-slider="techno">&#10094;</div>
+      <div class="arrow arrow-right" data-slider="techno">&#10095;</div>
+      <script>document.write(sampleSlides("techno","Techno"))</script>
+    </div>
+    <div class="flex justify-center gap-2 mt-4" id="dots-techno"></div>
+  </div>
+
+  <!-- Psychodelia -->
+  <div class="tab-content hidden" id="psychodelia">
+    <div class="vision-track" id="track-psychodelia">
+      <div class="arrow arrow-left" data-slider="psychodelia">&#10094;</div>
+      <div class="arrow arrow-right" data-slider="psychodelia">&#10095;</div>
+      <script>document.write(sampleSlides("psychodelia","Psychodelia"))</script>
+    </div>
+    <div class="flex justify-center gap-2 mt-4" id="dots-psychodelia"></div>
+  </div>
+
+  <!-- Boom-Bap -->
+  <div class="tab-content hidden" id="boombap">
+    <div class="vision-track" id="track-boombap">
+      <div class="arrow arrow-left" data-slider="boombap">&#10094;</div>
+      <div class="arrow arrow-right" data-slider="boombap">&#10095;</div>
+      <script>document.write(sampleSlides("boombap","Boom-Bap"))</script>
+    </div>
+    <div class="flex justify-center gap-2 mt-4" id="dots-boombap"></div>
+  </div>
+
+</div>
+
+<!-- CONTACT -->
+<section class="mt-32 mb-24 text-center max-w-3xl mx-auto">
+  <h2 class="text-3xl font-bold text-cyan-400 mb-6">Contact</h2>
+
+  <div class="bg-black/50 backdrop-blur-xl border border-cyan-500/20 p-8 rounded-2xl shadow-lg shadow-cyan-500/10 inline-block">
+    <p class="text-lg mb-3">Want custom packs or collaborations?</p>
+
+    <p class="text-cyan-300 font-semibold text-lg">Email:</p>
+    <a href="mailto:samplepack@email.com" class="hover:text-cyan-400">
+      samplepack@email.com
+    </a>
+
+    <div class="mt-6">
+      <p class="text-cyan-300 font-semibold text-lg">Instagram:</p>
+      <a href="#" class="hover:text-cyan-400">@samplecreator</a>
+    </div>
+
+    <div class="mt-6">
+      <p class="text-cyan-300 font-semibold text-lg">Discord:</p>
+      <a href="#" class="hover:text-cyan-400">samplecreator#4092</a>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- TAB SYSTEM -->
+<script>
+const tabs = document.querySelectorAll(".tab-btn");
+const contents = document.querySelectorAll(".tab-content");
+
+tabs.forEach(btn => {
+  btn.onclick = () => {
+    tabs.forEach(b => b.classList.remove("active"));
+    btn.classList.add("active");
+    contents.forEach(c => c.classList.add("hidden"));
+    document.getElementById(btn.dataset.tab).classList.remove("hidden");
+  };
+});
+</script>
+
+<!-- SLIDERS -->
+<script>
+function initSlider(id) {
+  const track = document.getElementById(`track-${id}`);
+  const slides = [...track.querySelectorAll(".vision-slide")];
+  const dotsContainer = document.getElementById(`dots-${id}`);
+  let current = 0;
+
+  slides.forEach((_, i) => {
+    const d = document.createElement("div");
+    d.className = "dot";
+    if (i === 0) d.classList.add("active");
+    d.onclick = () => go(i);
+    dotsContainer.appendChild(d);
+  });
+
+  function layout() {
+    slides.forEach((sl, i) => {
+      const d = i - current;
+      const x = d * 210;
+      const z = -Math.abs(d) * 90;
+      const r = d * -15;
+      sl.style.transform = `translateX(${x}px) translateZ(${z}px) rotateY(${r}deg)`;
+      sl.style.zIndex = 50 - Math.abs(d);
+      sl.classList.toggle("is-active", d === 0);
+    });
+
+    [...dotsContainer.children].forEach((dot, i) =>
+      dot.classList.toggle("active", i === current)
+    );
+  }
+
+  function go(i) {
+    if (i < 0 || i >= slides.length) return;
+    current = i;
+    layout();
+  }
+
+  track.querySelector(".arrow-left").onclick = () => go(current - 1);
+  track.querySelector(".arrow-right").onclick = () => go(current + 1);
+
+  layout();
+}
+
+["hiphop","trap","drill","techno","psychodelia","boombap"].forEach(initSlider);
+</script>
+
+<!-- WAVE VISUALIZER -->
+<script>
+function initWave(audioId, canvasId) {
+  const audio = document.getElementById(audioId);
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext("2d");
+
+  let actx;
+  let analyser;
+  let buffer;
+window.addEventListener("load", () => {
+  ids.forEach(id => {
+    initWave("audio-" + id, "wave-" + id);
+  });
+});
+  // Pokreće se kada korisnik klikne "play" na audio elementu
+  audio.addEventListener('play', () => {
+    if (!actx) {
+      // Kreiramo AudioContext tek kada korisnik interaguje
+      actx = new (window.AudioContext || window.webkitAudioContext)();
+      const src = actx.createMediaElementSource(audio);
+      analyser = actx.createAnalyser();
+      analyser.fftSize = 256;
+      src.connect(analyser);
+      analyser.connect(actx.destination);
+
+      buffer = new Uint8Array(analyser.frequencyBinCount);
+
+      function draw() {
+        requestAnimationFrame(draw);
+        analyser.getByteFrequencyData(buffer);
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "#00b7ff";
+
+        for (let i = 0; i < buffer.length; i += 8) {
+          const h = buffer[i] / 3;
+          ctx.fillRect(i * 2, canvas.height - h, 4, h);
+        }
+      }
+      draw();
+    }
+  });
+}
+
+// Lista svih ID-eva audio elemenata
+const ids = [];
+["hiphop","trap","drill","techno","psychodelia","boombap"].forEach(prefix => {
+  for (let i = 1; i <= 20; i++) ids.push(prefix + i);
+});
+</script>
+
+</body>
+</html>
