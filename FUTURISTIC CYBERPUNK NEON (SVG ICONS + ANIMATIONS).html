@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sidebar 6 - Cyberpunk Neon</title>
+
+<style>
+body{
+    margin: 0;
+    background: #04010f;
+    font-family: "Orbitron", Arial, sans-serif;
+    color: #fff;
+}
+
+/* CYBER MENU ICON */
+.menu-icon{
+    width: 36px;
+    position: absolute;
+    top: 20px;
+    left: 25px;
+    cursor: pointer;
+    z-index: 100;
+    fill: #7d4dff;
+    filter: drop-shadow(0 0 8px #7d4dff);
+    transition: 0.25s;
+}
+.menu-icon:hover{
+    transform: scale(1.1);
+}
+
+/* CYBER SIDEBAR */
+.sidebar{
+    width: 250px;
+    height: 100vh;
+    position: fixed;
+    left: 0;
+    top: 0;
+    padding-top: 90px;
+    background: linear-gradient(180deg, #0d0223, #150040, #050014);
+    box-shadow: 0 0 25px #7d4dff;
+    border-right: 2px solid #7d4dff55;
+    transition: 0.35s ease;
+}
+
+/* COLLAPSE MODE */
+.small-sidebar{
+    width: 85px;
+}
+.small-sidebar a p{
+    display: none;
+}
+
+/* LINKS */
+.shortcut-links a{
+    display: flex;
+    align-items: center;
+    padding: 14px 20px;
+    margin: 10px 8px;
+    border-radius: 12px;
+    text-decoration: none;
+    color: #d2caff;
+    font-size: 14px;
+    background: rgba(125,77,255,0.08);
+    border: 1px solid transparent;
+    transition: 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+/* HOLOGRAM HOVER */
+.shortcut-links a:hover{
+    background: rgba(125,77,255,0.25);
+    color: #fff;
+    border: 1px solid #7d4dff;
+    box-shadow: 0 0 15px #7d4dff;
+    transform: translateX(8px);
+}
+
+/* HOLOGRAM LINE EFFECT */
+.shortcut-links a::before{
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -120%;
+    width: 120%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, #7d4dff66, transparent);
+    transition: 0.4s;
+}
+.shortcut-links a:hover::before{
+    left: 120%;
+}
+
+/* ICONS */
+.shortcut-links svg{
+    width: 26px;
+    margin-right: 16px;
+    fill: #a58cff;
+    transition: 0.3s;
+    filter: drop-shadow(0 0 4px #7d4dff55);
+}
+.shortcut-links a:hover svg{
+    fill: #fff;
+    filter: drop-shadow(0 0 8px #7d4dff);
+}
+
+/* MAIN PAGE */
+.container{
+    margin-left: 270px;
+    padding: 40px;
+    transition: 0.35s;
+}
+.large-container{
+    margin-left: 110px;
+}
+
+</style>
+</head>
+<body>
+
+<!-- CYBER MENU ICON -->
+<svg class="menu-icon" viewBox="0 0 24 24">
+    <path d="M3 6h18M3 12h18M3 18h18"/>
+</svg>
+
+<div class="sidebar">
+    <div class="shortcut-links">
+        
+        <a href="#">
+            <svg viewBox="0 0 24 24">
+                <path d="M3 9l9-6 9 6v11a2 2 0 0 
+                1-2 2h-4a2 2 0 0 1-2-2v-5H9v5a2 2 
+                0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            </svg>
+            <p>Home</p>
+        </a>
+
+        <a href="#">
+            <svg viewBox="0 0 24 24">
+                <path d="M21 10H7m14 4H7m10 
+                4H7m3-12H3m4 4H3m4 4H3"/>
+            </svg>
+            <p>Explore</p>
+        </a>
+
+        <a href="#">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 4h16v12H5l-1 4z"/>
+            </svg>
+            <p>Subscriptions</p>
+        </a>
+
+        <a href="#">
+            <svg viewBox="0 0 24 24">
+                <path d="M4 19h16M4 5h16v10H4z"/>
+            </svg>
+            <p>Library</p>
+        </a>
+
+        <a href="#">
+            <svg viewBox="0 0 24 24">
+                <path d="M12 8v4l3 3M4 4h16v16H4z"/>
+            </svg>
+            <p>History</p>
+        </a>
+
+    </div>
+</div>
+
+<div class="container">
+    <h1>Sidebar 6 – Futuristic Cyberpunk Neon</h1>
+    <p>Neon, hologram, glow efekti – pravi cyberpunk UI.</p>
+</div>
+
+<script>
+const menuIcon = document.querySelector(".menu-icon");
+const sideBar = document.querySelector(".sidebar");
+const container = document.querySelector(".container");
+
+menuIcon.onclick = function(){
+    sideBar.classList.toggle("small-sidebar");
+    container.classList.toggle("large-container");
+}
+</script>
+
+</body>
+</html>
