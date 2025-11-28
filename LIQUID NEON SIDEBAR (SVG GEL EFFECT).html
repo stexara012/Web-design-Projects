@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+.sidebar {
+    width: 0;
+    transition: 0.5s ease-in-out;
+    overflow: hidden;
+    backdrop-filter: blur(20px);
+    background: rgba(0,255,255,0.1);
+    border-right: 2px solid rgba(0,255,255,0.3);
+}
+.sidebar.open {
+    width: 260px;
+}
+svg blob {
+    filter: drop-shadow(0 0 20px cyan);
+}
+</style>
+
+</head>
+
+<body class="bg-gray-950 text-white">
+
+<button id="openSb" class="m-5 px-4 py-2 bg-cyan-500 rounded-lg">Open Liquid Sidebar</button>
+
+<div id="side" class="sidebar fixed top-0 left-0 h-full p-6">
+
+    <svg width="200" height="200" class="mb-5">
+        <circle cx="100" cy="100" r="80" fill="cyan">
+            <animate attributeName="r" values="75;85;75" dur="3s" repeatCount="indefinite"/>
+        </circle>
+    </svg>
+
+    <a class="block py-3 hover:text-cyan-300">Dashboard</a>
+    <a class="block py-3 hover:text-cyan-300">Projects</a>
+    <a class="block py-3 hover:text-cyan-300">Clients</a>
+    <a class="block py-3 hover:text-cyan-300">Settings</a>
+</div>
+
+<script>
+const side = document.getElementById("side");
+document.getElementById("openSb").onclick = () => {
+    side.classList.toggle("open");
+};
+</script>
+
+</body>
+</html>
