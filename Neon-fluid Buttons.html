@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Neon Fluid Button with Morphing SVG</title>
+<script src="https://cdn.tailwindcss.com"></script>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+    background:#0d0d2b;
+}
+
+.morph-btn {
+    position: relative;
+    padding:1rem 2rem 1rem 3rem;
+    font-size:1.2rem;
+    color:#00fff0;
+    border-radius:50px;
+    border:2px solid #00fff0;
+    background:#0a0f1e;
+    cursor:pointer;
+    overflow:hidden;
+    font-weight:bold;
+    display:flex;
+    align-items:center;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.morph-btn:hover {
+    transform: scale(1.1);
+    box-shadow: 0 0 20px #00fff0, 0 0 40px #ff00ff inset;
+}
+
+.morph-btn svg {
+    width:24px;
+    height:24px;
+    margin-right:10px;
+    transition: all 0.4s ease;
+}
+
+/* Hover morph path animation */
+.morph-btn:hover svg path {
+    d: path("M12 2 C17 2, 22 12, 12 22 C2 12, 7 2, 12 2 Z"); /* heart shape */
+}
+
+.morph-btn::before {
+    content:'';
+    position:absolute;
+    top:-50%; left:-50%; width:200%; height:200%;
+    background: linear-gradient(45deg,#00fff0,#ff00ff);
+    filter: blur(20px);
+    z-index:-1;
+    animation: fluid 3s linear infinite;
+}
+
+@keyframes fluid {
+    0% {transform:rotate(0deg);}
+    50% {transform:rotate(180deg);}
+    100% {transform:rotate(360deg);}
+}
+</style>
+</head>
+
+<body>
+
+<button class="morph-btn">
+<svg viewBox="0 0 24 24">
+<path fill="currentColor" d="M12 2 L22 12 L12 22 L2 12 Z"></path>
+</svg>
+Morph Me
+</button>
+
+</body>
+</html>
