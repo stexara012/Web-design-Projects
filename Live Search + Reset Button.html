@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Live Search + Reset</title>
+<style>
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #36d1dc, #5b86e5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 50px;
+}
+h1 {
+    color: #fff;
+    text-shadow: 2px 2px 5px rgba(0,0,0,0.3);
+}
+.container {
+    background: rgba(255,255,255,0.95);
+    padding: 20px 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    width: 350px;
+    text-align: center;
+}
+input[type=text] {
+    width: 70%;
+    padding: 10px;
+    margin-bottom: 15px;
+    font-size: 16px;
+    border-radius: 10px;
+    border: 2px solid #36d1dc;
+    transition: 0.3s;
+}
+input[type=text]:focus {
+    border-color: #5b86e5;
+    outline: none;
+}
+button {
+    padding: 10px 15px;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+    background: linear-gradient(45deg, #36d1dc, #5b86e5);
+    color: #fff;
+    transition: transform 0.2s;
+}
+button:hover {
+    transform: scale(1.05);
+}
+ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 20px;
+}
+li {
+    padding: 15px;
+    margin: 10px 0;
+    border-radius: 10px;
+    background: linear-gradient(45deg, #f7971e, #ffd200);
+    color: white;
+    font-weight: bold;
+    transition: transform 0.3s, background 0.3s;
+    cursor: pointer;
+}
+li:hover {
+    transform: scale(1.05);
+    background: linear-gradient(45deg, #ff512f, #f09819);
+}
+</style>
+</head>
+<body>
+
+<h1>Live Search + Reset</h1>
+<div class="container">
+    <input type="text" id="search-input" placeholder="Type to search...">
+    <button id="reset-btn">Reset</button>
+    <ul id="item-list">
+        <li>Java</li>
+        <li>C++</li>
+        <li>Python</li>
+        <li>React</li>
+        <li>Node.js</li>
+    </ul>
+</div>
+
+<script>
+const input = document.getElementById("search-input");
+const list = document.getElementById("item-list").getElementsByTagName("li");
+input.addEventListener("input", () => {
+    const val = input.value.toLowerCase();
+    for (let li of list) {
+        li.style.display = li.textContent.toLowerCase().includes(val) ? "block" : "none";
+    }
+});
+
+document.getElementById("reset-btn").addEventListener("click", () => {
+    input.value = "";
+    for (let li of list) li.style.display = "block";
+});
+</script>
+
+</body>
+</html>
