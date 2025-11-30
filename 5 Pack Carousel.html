@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>All Carousels Together</title>
+<style>
+    * { box-sizing: border-box; margin:0; padding:0; }
+    body { font-family:sans-serif; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; gap:50px; padding:50px 0; }
+
+    h2 { text-align:center; margin-bottom:10px; color:#333; }
+
+    /* Common slide style */
+    .carousel { position: relative; overflow:hidden; border-radius:10px; background:white; padding:10px; }
+
+    .slides, .slide-container { display:flex; transition: transform 0.5s ease; }
+    .slide, .item { min-width:300px; min-height:200px; flex-shrink:0; border-radius:10px; overflow:hidden; position:relative; margin-right:10px; }
+    .slide img, .item img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    /* Text Overlay */
+    .text-overlay { position:absolute; bottom:20px; left:20px; color:white; font-size:1.5rem; font-weight:bold; text-shadow:2px 2px 5px rgba(0,0,0,0.5); opacity:0; transform:translateY(20px); transition: opacity 0.5s, transform 0.5s; }
+    .slide.active .text-overlay { opacity:1; transform:translateY(0); }
+
+    /* Progress bar */
+    .progress-bar { position:absolute; bottom:10px; left:10px; width:calc(100% - 20px); height:8px; background:rgba(0,0,0,0.2); border-radius:5px; cursor:pointer; }
+    .progress { height:100%; background:#ff6f00; width:0%; border-radius:5px; transition: width 0.1s linear; }
+
+    /* Magnetic hover */
+    .magnetic-container { display:flex; gap:20px; justify-content:center; flex-wrap:wrap; }
+    .magnetic-container .slide { width:150px; height:150px; cursor:pointer; transition:transform 0.2s ease; }
+
+    /* Carousel with buttons */
+    .carousel-buttons { position: relative; }
+    .carousel-buttons button { position:absolute; top:50%; transform:translateY(-50%); background:transparent; border:none; font-size:1.5rem; cursor:pointer; z-index:1; }
+    .carousel-buttons #prevBtn { left:5px; }
+    .carousel-buttons #nextBtn { right:5px; }
+
+</style>
+</head>
+<body>
+
+<h2>1. Autoplay + Draggable Carousel</h2>
+<div class="carousel" id="draggableCarousel">
+    <div class="slide-container" id="draggableSlides">
+        <div class="slide"><img src="https://picsum.photos/id/1011/300/200" alt=""></div>
+        <div class="slide"><img src="https://picsum.photos/id/1015/300/200" alt=""></div>
+        <div class="slide"><img src="https://picsum.photos/id/1016/300/200" alt=""></div>
+        <div class="slide"><img src="https://picsum.photos/id/1020/300/200" alt=""></div>
+    </div>
+</div>
+
+<h2>2. Progress Bar Carousel</h2>
+<div class="carousel" id="progressCarousel">
+    <div class="slides" id="progressSlides">
+        <div class="slide active"><img src="https://picsum.photos/id/1011/300/200" alt=""><div class="text-overlay">Slide 1</div></div>
+        <div class="slide"><img src="https://picsum.photos/id/1015/300/200" alt=""><div class="text-overlay">Slide 2</div></div>
+        <div class="slide"><img src="https://picsum.photos/id/1016/300/200" alt=""><div class="text-overlay">Slide 3</div></div>
+    </div>
+    <div class="progress-bar" id="progressBar">
+        <div class="progress" id="progress"></div>
+    </div>
+</div>
+
+<h2>3. Mouse Parallax Carousel</h2>
+<div class="carousel" id="parallaxCarousel" style="width:400px;height:200px;">
+    <div class="slide" style="transform:translateX(-150px) translateZ(-50px);"><img src="https://picsum.photos/id/1011/400/200"></div>
+    <div class="slide" style="transform:translateX(0px) translateZ(0px);"><img src="https://picsum.photos/id/1015/400/200"></div>
+    <div class="slide" style="transform:translateX(150px) translateZ(-50px);"><img src="https://picsum.photos/id/1016/400/200"></div>
+</div>
+
+<h2>4. Text Overlay Carousel</h2>
+<div class="carousel" id="textOverlayCarousel" style="width:400px;height:200px;">
+    <div class="slides" id="textSlides">
+        <div class="slide active"><img src="https://picsum.photos/id/1011/400/200"><div class="text-overlay">Nature</div></div>
+        <div class="slide"><img src="https://picsum.photos/id/1015/400/200"><div class="text-overlay">Mountains</div></div>
+        <div class="slide"><img src="https://picsum.photos/id/1016/400/200"><div class="text-overlay">Lake</div></div>
+    </div>
+</div>
+
+<h2>5. Multi-Layer Parallax Carousel</h2>
+<div class="carousel" id="multiLayerCarousel" style="width:400px;height:200px;">
+    <div class="slides" id="multiSlides">
+        <div class="slide">
+            <div class="layer" data-speed="5"><img src="https://picsum.photos/id/1011/400/200"></div>
+            <div class="layer" data-speed="10"><img src="https://picsum.photos/id/1015/400/200"></div>
+            <div class="text layer" data-speed="15">Slide 1</div>
+        </div>
+        <div class="slide">
+            <div class="layer" data-speed="5"><img src="https://picsum.photos/id/1020/400/200"></div>
+            <div class="layer" data-speed="10"><img src="https://picsum.photos/id/1024/400/200"></div>
+            <div class="text layer" data-speed="15">Slide 2</div>
+        </div>
+    </div>
+</div>
+
+<h2>6. Magnetic Hover Carousel</h2>
+<div class="magnetic-container" id="magneticCarousel">
+    <div class="slide"><img src="https://picsum.photos/id/1011/150/150"></div>
+    <div class="slide"><img src="https://picsum.photos/id/1015/150/150"></div>
+    <div class="slide"><img src="https://picsum.photos/id/1016/150/150"></div>
+</div>
+
+<script>
+/* 1. Autoplay + Draggable */
+const draggableSlides = document.getElementById('draggableSlides');
+const draggableSlideElems = draggableSlides.querySelectorAll('.slide');
+const slideWidth = draggableSlideElems[0].clientWidth + 10;
+let draggableIndex = 0;
+let isDragging = false, startX, currentTranslate = 0, prevTranslate = 0;
+function draggableAutoplay() {
+    draggableIndex = (draggableIndex + 1) % draggableSlideElems.length;
+    currentTranslate = -draggableIndex * slideWidth;
+    draggableSlides.style.transform = `translateX(${currentTranslate}px)`;
+}
+let draggableInterval = setInterval(draggableAutoplay,3000);
+draggableSlides.addEventListener('mousedown', startDrag);
+draggableSlides.addEventListener('mousemove', drag);
+draggableSlides.addEventListener('mouseup', endDrag);
+draggableSlides.addEventListener('mouseleave', endDrag);
+function startDrag(e){isDragging=true; startX=e.pageX; prevTranslate=currentTranslate; clearInterval(draggableInterval);}
+function drag(e){if(!isDragging) return; const deltaX=e.pageX-startX; currentTranslate=prevTranslate+deltaX; draggableSlides.style.transform=`translateX(${currentTranslate}px)`;}
+function endDrag(){if(!isDragging) return; isDragging=false; draggableIndex=Math.round(-currentTranslate/slideWidth); draggableIndex=Math.max(0,Math.min(draggableIndex,draggableSlideElems.length-1)); currentTranslate=-draggableIndex*slideWidth; draggableSlides.style.transform=`translateX(${currentTranslate}px)`; draggableInterval=setInterval(draggableAutoplay,3000);}
+
+/* 2. Progress Bar */
+const progressSlides = document.querySelectorAll('#progressSlides .slide');
+const progressBarElem = document.getElementById('progress');
+let progressIndex=0, progressTime=3000, progressCounter=0;
+function updateProgress(){
+    progressCounter+=50;
+    let percent=(progressCounter/progressTime)*100;
+    if(percent>=100){progressIndex=(progressIndex+1)%progressSlides.length; showProgressSlide(progressIndex); progressCounter=0;}
+    progressBarElem.style.width=`${(progressCounter/progressTime)*100}%`;
+}
+function showProgressSlide(i){
+    progressSlides.forEach(slide=>slide.classList.remove('active'));
+    progressSlides[i].classList.add('active');
+    document.getElementById('progressSlides').style.transform=`translateX(${-300*i}px)`;
+}
+setInterval(updateProgress,50);
+document.querySelector('.progress-bar').addEventListener('click',e=>{
+    const rect=e.target.getBoundingClientRect();
+    const clickX=e.clientX-rect.left;
+    progressIndex=Math.floor((clickX/rect.width)*progressSlides.length);
+    showProgressSlide(progressIndex);
+    progressCounter=0;
+});
+
+/* 3. Mouse Parallax */
+const parallaxSlides = document.querySelectorAll('#parallaxCarousel .slide');
+document.getElementById('parallaxCarousel').addEventListener('mousemove', e=>{
+    const rect=e.target.getBoundingClientRect();
+    const x=e.clientX-rect.left; const centerX=rect.width/2;
+    const offsetX=(x-centerX)/centerX;
+    parallaxSlides.forEach((slide,i)=>{
+        const baseX=(i-1)*150; const baseZ=i===1?0:-50;
+        slide.style.transform=`translateX(${baseX+offsetX*30}px) translateZ(${baseZ}px)`;
+    });
+});
+
+/* 4. Text Overlay Carousel */
+const textSlidesElems = document.querySelectorAll('#textSlides .slide');
+let textIndex=0;
+setInterval(()=>{textIndex=(textIndex+1)%textSlidesElems.length; textSlidesElems.forEach(s=>s.classList.remove('active')); textSlidesElems[textIndex].classList.add('active'); document.getElementById('textSlides').style.transform=`translateX(${-400*textIndex}px)`;},4000);
+
+/* 5. Multi-Layer Parallax Carousel */
+const multiSlidesElems = document.querySelectorAll('#multiSlides .slide');
+let multiIndex=0;
+const multiCarousel = document.getElementById('multiLayerCarousel');
+setInterval(()=>{multiIndex=(multiIndex+1)%multiSlidesElems.length; document.getElementById('multiSlides').style.transform=`translateX(${-400*multiIndex}px)`;},4000);
+multiCarousel.addEventListener('mousemove', e=>{
+    const rect=multiCarousel.getBoundingClientRect();
+    const x=e.clientX-rect.left, y=e.clientY-rect.top;
+    const centerX=rect.width/2, centerY=rect.height/2;
+    const offsetX=(x-centerX)/centerX, offsetY=(y-centerY)/centerY;
+    multiSlidesElems[multiIndex].querySelectorAll('.layer').forEach(layer=>{
+        const speed=layer.dataset.speed;
+        layer.style.transform=`translateX(${offsetX*speed}px) translateY(${offsetY*speed}px)`;
+    });
+});
+
+/* 6. Magnetic Hover */
+document.querySelectorAll('#magneticCarousel .slide').forEach(slide=>{
+    slide.addEventListener('mousemove', e=>{
+        const rect=slide.getBoundingClientRect();
+        const x=e.clientX-rect.left, y=e.clientY-rect.top;
+        const centerX=rect.width/2, centerY=rect.height/2;
+        const moveX=(x-centerX)/10, moveY=(y-centerY)/10;
+        slide.style.transform=`translate(${moveX}px,${moveY}px) scale(1.05)`;
+    });
+    slide.addEventListener('mouseleave', ()=>{slide.style.transform=`translate(0,0) scale(1)`;});
+});
+</script>
+
+</body>
+</html>
