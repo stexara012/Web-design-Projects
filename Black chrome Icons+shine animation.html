@@ -1,0 +1,30 @@
+<div class="up3">
+  <form class="frm">
+    <div class="f"><i class="fa-solid fa-location-crosshairs"></i><input placeholder="City"></div>
+    <div class="f"><i class="fa-solid fa-calendar"></i><input type="date"></div>
+    <button><i class="fa-solid fa-search"></i></button>
+  </form>
+</div>
+
+<style>
+.up3 { padding:80px; display:flex; justify-content:center; }
+.frm {
+  display:flex; gap:20px;
+  background:linear-gradient(135deg,#0f0f0f,#1d1d1d);
+  padding:30px 40px; border-radius:60px; position:relative;
+}
+.frm::after {
+  content:""; position:absolute; top:0; left:-100%;
+  width:80%; height:100%;
+  background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);
+  animation:shine 2s infinite;
+}
+@keyframes shine {
+  from{left:-80%;} to{left:120%;}
+}
+.f { display:flex; align-items:center; gap:12px; }
+.f input { background:transparent; border:none; border-bottom:1px solid #999; color:white; outline:none; }
+.frm button {
+  background:#dbdbdb; border:none; padding:12px 20px; border-radius:30px;
+}
+</style>
