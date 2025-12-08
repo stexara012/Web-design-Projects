@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Navbar 10 - Futuristic Neon</title>
+<style>
+body { margin:0; font-family:Arial; height:2000px; background:#0a0a0a; }
+.navbar {
+  position: fixed;
+  top:0;
+  width:100%;
+  display:flex;
+  justify-content:center;
+  gap:30px;
+  padding:15px;
+  background: linear-gradient(90deg, #ff0066, #00ffff);
+  box-shadow: 0 0 20px #0ff;
+  border-bottom-left-radius:10px;
+  border-bottom-right-radius:10px;
+  z-index:1000;
+}
+.navbar a {
+  text-decoration:none;
+  font-weight:bold;
+  font-size:18px;
+  color:white;
+  padding:8px 15px;
+  transition: all 0.3s;
+}
+.navbar a:hover {
+  text-shadow: 0 0 10px #ff0, 0 0 20px #0ff, 0 0 30px #f0f;
+  transform: scale(1.1);
+}
+</style>
+</head>
+<body>
+
+<nav class="navbar">
+  <a href="#">Home</a>
+  <a href="#">About</a>
+  <a href="#">Services</a>
+  <a href="#">Contact</a>
+</nav>
+
+<div style="margin-top:100px;padding:20px;color:white;">
+<h1>Futuristic Neon Navbar</h1>
+<p>Gradient neon navbar with glowing hover effect.</p>
+</div>
+
+</body>
+</html>
