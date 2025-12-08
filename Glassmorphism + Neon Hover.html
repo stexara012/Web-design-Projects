@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Sidebar 2 - Glass</title>
+<style>
+body{
+    background: linear-gradient(135deg,#1a2a6c,#b21f1f,#fdbb2d);
+    height: 100vh;
+    margin: 0;
+    font-family: Arial;
+}
+
+/* GLASS SIDEBAR */
+.sidebar{
+    width: 17%;
+    height: 100vh;
+    position: fixed;
+    top: 0;
+    padding: 80px 20px;
+    backdrop-filter: blur(10px);
+    background: rgba(255,255,255,0.15);
+    border-right: 2px solid rgba(255,255,255,0.2);
+    transition: 0.3s;
+}
+
+/* LINKS */
+.shortcut-links a{
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    color: #fff;
+    text-decoration: none;
+    transition: 0.3s;
+}
+
+.shortcut-links a:hover{
+    background: rgba(255,255,255,0.2);
+    box-shadow: 0 0 10px #fff;
+    transform: translateX(5px);
+}
+
+.shortcut-links img{
+    width: 22px;
+    margin-right: 15px;
+}
+
+.menu-icon{
+    width: 30px;
+    position: absolute;
+    top: 25px;
+    left: 25px;
+    cursor: pointer;
+}
+
+.small-sidebar{
+    width: 6%;
+}
+.small-sidebar a p{
+    display: none;
+}
+.container{
+    margin-left: 18%;
+    padding: 30px;
+    color: #fff;
+}
+.large-container{
+    margin-left: 7%;
+}
+</style>
+</head>
+<body>
+
+<img src="images/menu.png" class="menu-icon">
+
+<div class="sidebar">
+    <div class="shortcut-links">
+        <a href="#"><img src="images/home.png"><p>Home</p></a>
+        <a href="#"><img src="images/explore.png"><p>Explore</p></a>
+        <a href="#"><img src="images/subscriprion.png"><p>Subscription</p></a>
+        <a href="#"><img src="images/library.png"><p>Library</p></a>
+        <a href="#"><img src="images/history.png"><p>History</p></a>
+        <a href="#"><img src="images/messages.png"><p>Messages</p></a>
+        <a href="#"><img src="images/more.png"><p>More</p></a>
+    </div>
+</div>
+
+<div class="container">
+    <h1>Sidebar 2 - Glassmorphism</h1>
+</div>
+
+<script>
+var menuIcon=document.querySelector(".menu-icon");
+var sideBar=document.querySelector(".sidebar");
+var container=document.querySelector(".container");
+
+menuIcon.onclick=function(){
+    sideBar.classList.toggle("small-sidebar");
+    container.classList.toggle("large-container");
+}
+</script>
+
+</body>
+</html>
