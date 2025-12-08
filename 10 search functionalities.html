@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 Search Functionalities</title>
+<style>
+body {
+    font-family: sans-serif;
+    background: #f0f0f0;
+    margin: 0;
+    padding: 20px;
+}
+h2 {
+    margin-top: 40px;
+}
+.container {
+    background: #fff;
+    padding: 15px;
+    margin-bottom: 30px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+input[type=text] {
+    padding: 8px;
+    font-size: 16px;
+    width: 250px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+button {
+    padding: 8px 12px;
+    font-size: 16px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    background-color: #4CAF50;
+    color: white;
+}
+ul {
+    list-style: none;
+    padding: 0;
+    margin-top: 10px;
+}
+li {
+    padding: 10px;
+    margin: 5px 0;
+    border-radius: 5px;
+    background: #e0e0e0;
+}
+mark {
+    background: yellow;
+}
+</style>
+</head>
+<body>
+
+<h1>10 Different Search Functionalities</h1>
+
+<!-- 1. Basic search with button -->
+<div class="container">
+    <h2>1. Basic Search</h2>
+    <input type="text" id="search-input-1" placeholder="Search...">
+    <button id="search-btn-1">Search</button>
+    <ul id="item-list-1">
+        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>Python</li>
+    </ul>
+</div>
+
+<!-- 2. Live search with reset button -->
+<div class="container">
+    <h2>2. Live Search + Reset</h2>
+    <input type="text" id="search-input-2" placeholder="Search...">
+    <button id="reset-btn-2">Reset</button>
+    <ul id="item-list-2">
+        <li>Java</li><li>C++</li><li>React</li><li>Kotlin</li>
+    </ul>
+</div>
+
+<!-- 3. Search ignoring spaces & case -->
+<div class="container">
+    <h2>3. Search ignoring spaces & case</h2>
+    <input type="text" id="search-input-3" placeholder="Search...">
+    <button id="search-btn-3">Search</button>
+    <ul id="item-list-3">
+        <li>JavaScript</li><li>Python</li><li>HTML</li><li>CSS</li>
+    </ul>
+</div>
+
+<!-- 4. Search with highlight matching -->
+<div class="container">
+    <h2>4. Search with Highlight</h2>
+    <input type="text" id="search-input-4" placeholder="Search...">
+    <button id="search-btn-4">Search</button>
+    <ul id="item-list-4">
+        <li>React</li><li>Vue</li><li>Angular</li><li>Svelte</li>
+    </ul>
+</div>
+
+<!-- 5. Regex search -->
+<div class="container">
+    <h2>5. Regex Search</h2>
+    <input type="text" id="search-input-5" placeholder="Enter regex...">
+    <button id="search-btn-5">Search</button>
+    <ul id="item-list-5">
+        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>Python</li>
+    </ul>
+</div>
+
+<!-- 6. Multi-keyword search -->
+<div class="container">
+    <h2>6. Multi-keyword Search</h2>
+    <input type="text" id="search-input-6" placeholder="Enter keywords comma-separated...">
+    <button id="search-btn-6">Search</button>
+    <ul id="item-list-6">
+        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>Python</li><li>React</li>
+    </ul>
+</div>
+
+<!-- 7. Dropdown filter + search -->
+<div class="container">
+    <h2>7. Dropdown Filter + Search</h2>
+    <select id="category-7">
+        <option value="all">All</option>
+        <option value="frontend">Frontend</option>
+        <option value="backend">Backend</option>
+    </select>
+    <input type="text" id="search-input-7" placeholder="Search...">
+    <button id="search-btn-7">Search</button>
+    <ul id="item-list-7">
+        <li data-category="frontend">HTML</li>
+        <li data-category="frontend">CSS</li>
+        <li data-category="frontend">React</li>
+        <li data-category="backend">Python</li>
+        <li data-category="backend">Java</li>
+    </ul>
+</div>
+
+<!-- 8. Search with live counter -->
+<div class="container">
+    <h2>8. Search with Result Counter</h2>
+    <input type="text" id="search-input-8" placeholder="Search...">
+    <button id="search-btn-8">Search</button>
+    <p id="counter-8"></p>
+    <ul id="item-list-8">
+        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>Python</li>
+    </ul>
+</div>
+
+<!-- 9. Fuzzy search (typo tolerant) -->
+<div class="container">
+    <h2>9. Fuzzy Search (simple)</h2>
+    <input type="text" id="search-input-9" placeholder="Search...">
+    <button id="search-btn-9">Search</button>
+    <ul id="item-list-9">
+        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>Python</li><li>React</li>
+    </ul>
+</div>
+
+<!-- 10. Autocomplete suggestions -->
+<div class="container">
+    <h2>10. Autocomplete Suggestions</h2>
+    <input type="text" id="search-input-10" placeholder="Search...">
+    <button id="search-btn-10">Search</button>
+    <ul id="item-list-10">
+        <li>HTML</li><li>CSS</li><li>JavaScript</li><li>Python</li><li>React</li>
+    </ul>
+    <ul id="suggestions-10"></ul>
+</div>
+
+<script>
+// 1. Basic search
+document.getElementById("search-btn-1").addEventListener("click", () => {
+    const val = document.getElementById("search-input-1").value.toLowerCase();
+    const list = document.getElementById("item-list-1").getElementsByTagName("li");
+    for (let li of list) li.style.display = li.textContent.toLowerCase().includes(val) ? "block" : "none";
+});
+
+// 2. Live search + reset
+const input2 = document.getElementById("search-input-2");
+const list2 = document.getElementById("item-list-2").getElementsByTagName("li");
+input2.addEventListener("input", () => {
+    const val = input2.value.toLowerCase();
+    for (let li of list2) li.style.display = li.textContent.toLowerCase().includes(val) ? "block" : "none";
+});
+document.getElementById("reset-btn-2").addEventListener("click", () => {
+    input2.value = "";
+    for (let li of list2) li.style.display = "block";
+});
+
+// 3. Search ignoring spaces & case
+document.getElementById("search-btn-3").addEventListener("click", () => {
+    const val = document.getElementById("search-input-3").value.toLowerCase().replace(/\s/g, "");
+    const list = document.getElementById("item-list-3").getElementsByTagName("li");
+    for (let li of list) {
+        li.style.display = li.textContent.toLowerCase().replace(/\s/g, "").includes(val) ? "block" : "none";
+    }
+});
+
+// 4. Search with highlight
+document.getElementById("search-btn-4").addEventListener("click", () => {
+    const val = document.getElementById("search-input-4").value.toLowerCase();
+    const list = document.getElementById("item-list-4").getElementsByTagName("li");
+    for (let li of list) {
+        const text = li.textContent;
+        if(text.toLowerCase().includes(val)) {
+            li.innerHTML = text.replace(new RegExp(val, "gi"), match => `<mark>${match}</mark>`);
+            li.style.display = "block";
+        } else li.style.display = "none";
+    }
+});
+
+// 5. Regex search
+document.getElementById("search-btn-5").addEventListener("click", () => {
+    const val = document.getElementById("search-input-5").value;
+    const list = document.getElementById("item-list-5").getElementsByTagName("li");
+    try {
+        const regex = new RegExp(val, "i");
+        for (let li of list) li.style.display = regex.test(li.textContent) ? "block" : "none";
+    } catch(e) { alert("Invalid regex"); }
+});
+
+// 6. Multi-keyword search
+document.getElementById("search-btn-6").addEventListener("click", () => {
+    const val = document.getElementById("search-input-6").value.toLowerCase();
+    const keywords = val.split(",");
+    const list = document.getElementById("item-list-6").getElementsByTagName("li");
+    for (let li of list) {
+        li.style.display = keywords.some(k => li.textContent.toLowerCase().includes(k.trim())) ? "block" : "none";
+    }
+});
+
+// 7. Dropdown + search
+document.getElementById("search-btn-7").addEventListener("click", () => {
+    const val = document.getElementById("search-input-7").value.toLowerCase();
+    const cat = document.getElementById("category-7").value;
+    const list = document.getElementById("item-list-7").getElementsByTagName("li");
+    for (let li of list) {
+        const matchesCat = cat === "all" || li.dataset.category === cat;
+        const matchesText = li.textContent.toLowerCase().includes(val);
+        li.style.display = matchesCat && matchesText ? "block" : "none";
+    }
+});
+
+// 8. Search with counter
+document.getElementById("search-btn-8").addEventListener("click", () => {
+    const val = document.getElementById("search-input-8").value.toLowerCase();
+    const list = document.getElementById("item-list-8").getElementsByTagName("li");
+    let count = 0;
+    for (let li of list) {
+        if(li.textContent.toLowerCase().includes(val)) { li.style.display = "block"; count++; }
+        else li.style.display = "none";
+    }
+    document.getElementById("counter-8").textContent = `${count} result(s) found`;
+});
+
+// 9. Fuzzy search (simple: letter order match)
+document.getElementById("search-btn-9").addEventListener("click", () => {
+    const val = document.getElementById("search-input-9").value.toLowerCase();
+    const list = document.getElementById("item-list-9").getElementsByTagName("li");
+    for (let li of list) {
+        const text = li.textContent.toLowerCase();
+        let match = true;
+        let index = 0;
+        for (let char of val) {
+            index = text.indexOf(char, index);
+            if(index === -1){ match = false; break; }
+            index++;
+        }
+        li.style.display = match ? "block" : "none";
+    }
+});
+
+// 10. Autocomplete suggestions
+const input10 = document.getElementById("search-input-10");
+const list10 = document.getElementById("item-list-10").getElementsByTagName("li");
+const sug10 = document.getElementById("suggestions-10");
+document.getElementById("search-btn-10").addEventListener("click", () => {
+    const val = input10.value.toLowerCase();
+    sug10.innerHTML = "";
+    for (let li of list10) {
+        li.style.display = li.textContent.toLowerCase().includes(val) ? "block" : "none";
+        if(li.textContent.toLowerCase().includes(val) && val !== "") {
+            const s = document.createElement("li");
+            s.textContent = li.textContent;
+            sug10.appendChild(s);
+        }
+    }
+});
+</script>
+
+</body>
+</html>
