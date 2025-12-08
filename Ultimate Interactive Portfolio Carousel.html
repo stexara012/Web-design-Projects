@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ultimate Carousel Suite v5</title>
+<style>
+* { box-sizing:border-box; margin:0; padding:0; }
+body { font-family:sans-serif; background:#f0f0f0; display:flex; flex-direction:column; align-items:center; gap:60px; padding:50px 0; }
+h2 { text-align:center; color:#333; }
+
+/* Carousel Container */
+.portfolio-carousel { perspective:1200px; width:90%; max-width:600px; height:350px; position:relative; overflow:hidden; border-radius:15px; background:#000; }
+.carousel-slides { display:flex; transition:transform 0.8s ease-in-out; transform-style:preserve-3d; height:100%; }
+.carousel-slide { min-width:100%; height:100%; position:relative; flex-shrink:0; overflow:hidden; border-radius:15px; cursor:pointer; }
+
+/* Layers for Parallax */
+.layer { position:absolute; width:100%; height:100%; top:0; left:0; transition:transform 0.3s ease; background-size:cover; background-position:center; }
+.layer.video { object-fit:cover; }
+
+/* Overlay content */
+.overlay { position:absolute; bottom:20px; left:20px; color:#fff; z-index:2; background:rgba(0,0,0,0.4); padding:10px; border-radius:8px; transition:all 0.3s ease; }
+.carousel-slide:hover .overlay { transform:translateY(-10px); background:rgba(0,0,0,0.6); }
+
+/* Navigation buttons */
+.prev, .next { position:absolute; top:50%; transform:translateY(-50%); background:rgba(255,255,255,0.3); border:none; font-size:2rem; cursor:pointer; padding:5px 10px; border-radius:50%; z-index:3; }
+.prev { left:15px; } .next { right:15px; }
+
+/* Thumbnails */
+.thumbnails { display:flex; justify-content:center; gap:5px; margin-top:15px; flex-wrap:wrap; }
+.thumbnail { width:60px; height:40px; border-radius:5px; overflow:hidden; opacity:0.5; border:2px solid transparent; cursor:pointer; }
+.thumbnail.active { opacity:1; border-color:#ff6f00; }
+.thumbnail img { width:100%; height:100%; object-fit:cover; }
+
+/* Responsive */
+@media(max-width:600px){ .portfolio-carousel { height:250px; } }
+</style>
+</head>
+<body>
+
+<h2>Ultimate V5: Interactive Portfolio Carousel</h2>
+<div class="portfolio-carousel" id="portfolioCarousel">
+    <button class="prev">&#10094;</button>
+    <button class="next">&#10095;</button>
+    <div class="carousel-slides" id="carouselSlides">
+        <!-- Slide 1: Image -->
+        <div class="carousel-slide">
+            <div class="layer" style="background-image:url('https://picsum.photos/id/1081/600/350'); z-index:1;"></div>
+            <div class="layer" style="background-image:url('https://picsum.photos/id/1082/600/350'); z-index:2; opacity:0.5;"></div>
+            <div class="overlay">
+                <h3>Project 1</h3>
+                <p>Awesome image carousel demo</p>
+                <button style="padding:5px 10px; border:none; border-radius:5px; cursor:pointer;">View Project</button>
+            </div>
+        </div>
+        <!-- Slide 2: Video -->
+        <div class="carousel-slide">
+            <video class="layer video" src="https://www.w3schools.com/html/mov_bbb.mp4" autoplay muted loop></video>
+            <div class="overlay">
+                <h3>Project 2</h3>
+                <p>Video background showcase</p>
+                <button style="padding:5px 10px; border:none; border-radius:5px; cursor:pointer;">Watch Video</button>
+            </div>
+        </div>
+        <!-- Slide 3: Image -->
+        <div class="carousel-slide">
+            <div class="layer" style="background-image:url('https://picsum.photos/id/1085/600/350'); z-index:1;"></div>
+            <div class="layer" style="background-image:url('https://picsum.photos/id/1086/600/350'); z-index:2; opacity:0.5;"></div>
+            <div class="overlay">
+                <h3>Project 3</h3>
+                <p>Interactive parallax layers</p>
+                <button style="padding:5px 10px; border:none; border-radius:5px; cursor:pointer;">Explore</button>
+            </div>
+        </div>
+    </div>
+    <div class="thumbnails" id="portfolioThumbs">
+        <div class="thumbnail active"><img src="https://picsum.photos/id/1081/60/40"></div>
+        <div class="thumbnail"><img src="https://picsum.photos/id/1083/60/40"></div>
+        <div class="thumbnail"><img src="https://picsum.photos/id/1085/60/40"></div>
+    </div>
+</div>
+
+<script>
+// Carousel logic
+const slides = document.getElementById('carouselSlides').children;
+const thumbs = document.querySelectorAll('#portfolioThumbs .thumbnail');
+const prev = document.querySelector('#portfolioCarousel .prev');
+const next = document.querySelector('#portfolioCarousel .next');
+let index = 0;
+
+function updateCarousel(i){
+    document.getElementById('carouselSlides').style.transform = `translateX(${-i*100}%)`;
+    thumbs.forEach(t=>t.classList.remove('active'));
+    thumbs[i].classList.add('active');
+}
+
+// Buttons
+prev.addEventListener('click', ()=>{index=(index-1+slides.length)%slides.length; updateCarousel(index);});
+next.addEventListener('click', ()=>{index=(index+1)%slides.length; updateCarousel(index);});
+
+// Thumbnails
+thumbs.forEach((thumb,i)=>thumb.addEventListener('click', ()=>{index=i; updateCarousel(index);}))
+
+// Drag & Swipe
+let startX=0, isDragging=false;
+const slideContainer = document.getElementById('carouselSlides');
+slideContainer.addEventListener('mousedown', e=>{isDragging=true; startX=e.clientX;});
+slideContainer.addEventListener('mousemove', e=>{
+    if(!isDragging) return;
+    const dx = e.clientX - startX;
+    slideContainer.style.transform = `translateX(${-index*100 + dx/slideContainer.clientWidth*100}%)`;
+});
+slideContainer.addEventListener('mouseup', e=>{
+    if(!isDragging) return;
+    isDragging=false;
+    const dx = e.clientX - startX;
+    if(dx>50) index=Math.max(0,index-1);
+    if(dx<-50) index=Math.min(slides.length-1,index+1);
+    updateCarousel(index);
+});
+slideContainer.addEventListener('mouseleave', ()=>{if(isDragging){isDragging=false; updateCarousel(index);}});
+
+// Touch events
+slideContainer.addEventListener('touchstart', e=>{isDragging=true; startX=e.touches[0].clientX;});
+slideContainer.addEventListener('touchmove', e=>{
+    if(!isDragging) return;
+    const dx = e.touches[0].clientX - startX;
+    slideContainer.style.transform = `translateX(${-index*100 + dx/slideContainer.clientWidth*100}%)`;
+});
+slideContainer.addEventListener('touchend', e=>{
+    if(!isDragging) return;
+    isDragging=false;
+    const dx = e.changedTouches[0].clientX - startX;
+    if(dx>50) index=Math.max(0,index-1);
+    if(dx<-50) index=Math.min(slides.length-1,index+1);
+    updateCarousel(index);
+});
+
+// Autoplay
+setInterval(()=>{index=(index+1)%slides.length; updateCarousel(index);},5000);
+
+</script>
+</body>
+</html>
