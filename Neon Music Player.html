@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Player EQ + 12x12 Grid Modes</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+body { margin:0; font-family:Arial; height:100vh; overflow:hidden; background:#000; }
+#bgCanvas { position:absolute; top:0; left:0; width:100vw; height:100vh; z-index:0; }
+.player-box {
+  width:760px; padding:25px; border-radius:20px; background:rgba(0,0,0,0.55);
+  border:3px solid #00fff0; animation:glow 6s linear infinite; transition:0.4s ease;
+  position:relative; z-index:1; margin:auto; top:50%; transform:translateY(-50%);
+  overflow:hidden;
+}
+@keyframes glow {0%{border-color:#0ff; box-shadow:0 0 23px #0ff}33%{border-color:#f0f; box-shadow:0 0 28px #f0f}66%{border-color:#09f; box-shadow:0 0 28px #09f}100%{border-color:#0ff; box-shadow:0 0 23px #0ff}}
+.controls { display:grid; grid-template-columns:repeat(6,1fr); gap:15px; margin:20px 0; z-index:2; position:relative; }
+.btn { width:65px; height:65px; border-radius:50%; background:#222; color:white; border:none; cursor:pointer; font-size:22px; display:flex; justify-content:center; align-items:center; transition:0.2s; position:relative; overflow:hidden; }
+.btn:hover { transform:scale(1.12); }
+.progress-container { height:12px; width:100%; background:#222; border-radius:8px; cursor:pointer; margin-bottom:12px; }
+.progress { height:100%; width:0%; background:#0ff; }
+.volume-container { display:flex; align-items:center; gap:10px; color:#0ff; z-index:2; position:relative; }
+input[type="range"] { width:150px; -webkit-appearance:none; background:#222; height:8px; border-radius:5px; }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance:none; width:18px;height:18px; background:#0ff;border-radius:50%; }
+.playlist { margin-top:12px; max-height:180px; overflow-y:auto; border:2px solid #0ff; padding:8px; border-radius:10px; z-index:2; position:relative; }
+.playlist div { padding:8px; border-radius:5px; margin-bottom:6px; cursor:pointer; background:rgba(255,255,255,0.05); transition:0.2s; }
+.playlist div:hover { background:rgba(0,255,240,0.2); }
+.active-track { background:rgba(0,255,240,0.4)!important; }
+#equalizer { width:100%; height:200px; background:rgba(0,0,0,0.1); border-radius:10px; position:absolute; top:0; left:0; z-index:0; }
+#drop-zone { border:2px dashed #0ff; padding:10px; text-align:center; margin-top:10px; border-radius:10px; color:#0ff; z-index:2; position:relative; }
+</style>
+</head>
+<body>
+<canvas id="bgCanvas"></canvas>
+<div class="player-box" id="player">
+  <canvas id="equalizer"></canvas>
+  <input type="file" id="audio-upload" accept="audio/*" multiple>
+  <div id="drop-zone">Drag & Drop Music Here</div>
+  <div class="controls">
+    <button class="btn" id="play"><i class="fas fa-play"></i></button>
+    <button class="btn" id="pause"><i class="fas fa-pause"></i></button>
+    <button class="btn" id="rewind"><i class="fas fa-backward"></i></button>
+    <button class="btn" id="forward"><i class="fas fa-forward"></i></button>
+    <button class="btn" id="shuffle"><i class="fas fa-random"></i></button>
+    <button class="btn" id="mode"><i class="fas fa-bolt"></i></button>
+  </div>
+  <div class="volume-container">
+    <i class="fas fa-volume-down"></i>
+    <input type="range" id="vol-slider" min="0" max="1" step="0.01">
+    <i class="fas fa-volume-up"></i>
+  </div>
+  <div class="progress-container" id="progress-container"><div class="progress" id="progress"></div></div>
+  <div id="time">0:00 / 0:00</div>
+  <div class="playlist" id="playlist"></div>
+</div>
+
+<script>
+let audio=new Audio();
+let playlist=[]; let currentIndex=0;
+let audioContext=null, source=null, analyser=null, dataArray=null;
+let eqMode=0, gridMode=0;
+
+const listBox=document.getElementById("playlist");
+const upload=document.getElementById("audio-upload");
+const canvas=document.getElementById("equalizer"); const ctx=canvas.getContext("2d");
+const progressContainer=document.getElementById("progress-container"); const progressBar=document.getElementById("progress");
+const timeDisplay=document.getElementById("time");
+
+function initAudioGraph(){
+  if(!audioContext){ audioContext=new (window.AudioContext||window.webkitAudioContext)(); }
+  if(!source){
+    source=audioContext.createMediaElementSource(audio);
+    analyser=audioContext.createAnalyser();
+    analyser.fftSize=256; dataArray=new Uint8Array(analyser.frequencyBinCount);
+    source.connect(analyser); analyser.connect(audioContext.destination);
+    drawEQ();
+  }
+}
+
+upload.addEventListener("change",e=>{ for(let f of e.target.files) playlist.push({name:f.name,file:f}); renderPlaylist(); });
+const drop=document.getElementById("drop-zone");
+drop.ondragover=e=>(e.preventDefault(),drop.style.opacity=0.4);
+drop.ondragleave=()=>drop.style.opacity=1;
+drop.ondrop=e=>{ e.preventDefault(); drop.style.opacity=1; for(let f of e.dataTransfer.files) playlist.push({name:f.name,file:f}); renderPlaylist(); };
+
+function renderPlaylist(){
+  listBox.innerHTML="";
+  playlist.forEach((item,i)=>{
+    const div=document.createElement("div"); div.textContent=item.name;
+    if(i===currentIndex) div.classList.add("active-track");
+    div.onclick=()=>loadTrack(i); listBox.appendChild(div);
+  });
+}
+
+function loadTrack(i){
+  currentIndex=i; renderPlaylist();
+  const item=playlist[i];
+  if(!item||!item.file) return;
+  audio.src=URL.createObjectURL(item.file);
+  audio.play().then(()=>{ initAudioGraph(); audioContext.resume(); });
+}
+
+/* ---------------- EQUALIZER ---------------- */
+function drawEQ() {
+  requestAnimationFrame(drawEQ);
+  if(!analyser) return;
+  analyser.getByteFrequencyData(dataArray);
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  let w = canvas.width / dataArray.length;
+  let eqSum=0;
+  for (let i = 0; i < dataArray.length; i++) {
+    let h = dataArray[i];
+    eqSum += h;
+    // 12 EQ modova
+    switch(eqMode){
+      case 0: ctx.fillStyle=`hsl(${i*5},80%,60%)`; ctx.fillRect(i*w, canvas.height-h, w-1, h); break;
+      case 1: ctx.fillStyle="#0ff"; ctx.fillRect(i*w, canvas.height-h, w-1, h); ctx.fillStyle="#f0f"; ctx.fillRect(i*w, canvas.height-h-5, w-1,5); break;
+      case 2: ctx.strokeStyle="#0ff"; ctx.beginPath(); ctx.moveTo(i*w, canvas.height); ctx.lineTo(i*w, canvas.height-h); ctx.stroke(); break;
+      case 3: ctx.fillStyle="#f0f"; ctx.beginPath(); ctx.arc(i*w+w/2, canvas.height-h, h/10,0,Math.PI*2); ctx.fill(); break;
+      case 4: ctx.fillStyle="#0ff"; ctx.shadowBlur=10; ctx.shadowColor="#0ff"; ctx.fillRect(i*w, canvas.height-h, w-1, h); ctx.shadowBlur=0; break;
+      case 5: ctx.fillStyle="rgba(0,255,255,0.7)"; ctx.fillRect(i*w, canvas.height-h, w-1, h); break;
+      case 6: ctx.fillStyle="rgba(255,0,255,0.6)"; ctx.fillRect(i*w, canvas.height-h, w-1, h); break;
+      case 7: ctx.fillStyle=`hsl(${Math.random()*360},80%,60%)`; ctx.fillRect(i*w, canvas.height-h, w-1, h); break;
+      case 8: ctx.fillStyle="#0ff"; ctx.fillRect(i*w, canvas.height-h, w-1, h); ctx.fillRect(canvas.width-(i*w), canvas.height-h, w-1, h); break;
+      case 9: ctx.fillStyle="#0ff"; ctx.beginPath(); ctx.moveTo(0,canvas.height/2); for(let j=0;j<dataArray.length;j++){ ctx.lineTo(j*w, canvas.height/2 - dataArray[j]); } ctx.stroke(); break;
+      case 10: ctx.fillStyle="rgba(0,255,0,0.6)"; ctx.fillRect(i*w, canvas.height-h, w-1, h); break;
+      case 11: ctx.fillStyle="rgba(255,255,0,0.6)"; ctx.fillRect(i*w, canvas.height-h, w-1, h); break;
+    }
+  }
+  gridAudioLevel=Math.min(eqSum/dataArray.length,255);
+}
+
+/* ---------------- PROGRESS ---------------- */
+let isDragging=false;
+progressContainer.addEventListener("mousedown",e=>{isDragging=true; seek(e);});
+window.addEventListener("mousemove",e=>{ if(isDragging) seek(e); });
+window.addEventListener("mouseup",()=>isDragging=false);
+function seek(e){ const rect=progressContainer.getBoundingClientRect(); const pos=(e.clientX-rect.left)/rect.width; audio.currentTime=pos*audio.duration; }
+audio.addEventListener("timeupdate",()=>{ if(!audio.duration) return; progressBar.style.width=(audio.currentTime/audio.duration)*100+"%"; timeDisplay.textContent=`${fmt(audio.currentTime)} / ${fmt(audio.duration)}`; });
+function fmt(s){ let m=Math.floor(s/60); let sec=Math.floor(s%60).toString().padStart(2,"0"); return `${m}:${sec}`; }
+
+document.getElementById("play").onclick=()=>audio.play();
+document.getElementById("pause").onclick=()=>audio.pause();
+document.getElementById("rewind").onclick=()=>{ currentIndex=(currentIndex-1+playlist.length)%playlist.length; loadTrack(currentIndex); };
+document.getElementById("forward").onclick=()=>{ currentIndex=(currentIndex+1)%playlist.length; loadTrack(currentIndex); };
+document.getElementById("shuffle").onclick=()=>loadTrack(Math.floor(Math.random()*playlist.length));
+document.getElementById("mode").onclick=()=>{ eqMode=(eqMode+1)%12; gridMode=(gridMode+1)%12; };
+
+/* ---------------- VOLUME ---------------- */
+const volSlider=document.getElementById("vol-slider");
+volSlider.addEventListener("input",()=>audio.volume=volSlider.value);
+audio.volume=0.7; volSlider.value=0.7;
+
+/* ---------------- BACKGROUND GRID ---------------- */
+const bgCanvas=document.getElementById('bgCanvas'); const bgCtx=bgCanvas.getContext('2d');
+bgCanvas.width=window.innerWidth; bgCanvas.height=window.innerHeight;
+
+let gridData=[];
+for(let i=0;i<60;i++) gridData.push({x:Math.random()*bgCanvas.width, y:Math.random()*bgCanvas.height, size:Math.random()*5+2, dx:Math.random()*2-1, dy:Math.random()*2-1});
+
+let gridAudioLevel=0;
+
+function drawGrid(){
+  bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
+  for(let i=0;i<gridData.length;i++){
+    let g=gridData[i];
+    let size=g.size*(0.5+gridAudioLevel/255);
+    switch(gridMode){
+      case 0: bgCtx.fillStyle=`rgba(0,255,255,${0.1+gridAudioLevel/255*0.5})`; break;
+      case 1: bgCtx.fillStyle=`rgba(255,0,255,${0.1+gridAudioLevel/255*0.5})`; break;
+      case 2: bgCtx.fillStyle=`rgba(0,255,0,${0.1+gridAudioLevel/255*0.5})`; break;
+      case 3: bgCtx.fillStyle=`rgba(255,255,0,${0.1+gridAudioLevel/255*0.5})`; break;
+      case 4: bgCtx.fillStyle=`rgba(0,255,255,${Math.random()*0.3})`; break;
+      case 5: bgCtx.fillStyle=`rgba(255,0,255,${Math.random()*0.3})`; break;
+      case 6: bgCtx.fillStyle=`rgba(0,255,0,${Math.random()*0.3})`; break;
+      case 7: bgCtx.fillStyle=`rgba(255,255,0,${Math.random()*0.3})`; break;
+      case 8: bgCtx.fillStyle=`rgba(0,255,255,0.3)`; break;
+      case 9: bgCtx.fillStyle=`rgba(255,0,255,0.3)`; break;
+      case 10: bgCtx.fillStyle=`rgba(0,255,0,0.3)`; break;
+      case 11: bgCtx.fillStyle=`rgba(255,255,0,0.3)`; break;
+    }
+    bgCtx.fillRect(g.x,g.y,size,size);
+
+    // simple motion
+    g.x+=g.dx*(0.5+gridAudioLevel/255);
+    g.y+=g.dy*(0.5+gridAudioLevel/255);
+    if(g.x>bgCanvas.width) g.x=0; if(g.x<0) g.x=bgCanvas.width;
+    if(g.y>bgCanvas.height) g.y=0; if(g.y<0) g.y=bgCanvas.height;
+  }
+  requestAnimationFrame(drawGrid);
+}
+drawGrid();
+
+window.addEventListener("resize",()=>{ bgCanvas.width=window.innerWidth; bgCanvas.height=window.innerHeight; });
+</script>
+</body>
+</html>
