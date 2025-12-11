@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Layered Neon Pricing Cards</title>
+<style>
+body {
+  margin: 0;
+  font-family: 'Segoe UI', sans-serif;
+  background: linear-gradient(135deg, #0f0c29, #302b63, #24243e);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  color: #fff;
+  overflow-x: hidden;
+}
+
+h1 {
+  font-size: 3rem;
+  margin-bottom: 50px;
+  color: #ff4d6d;
+  background: linear-gradient(90deg, #ff4d6d, #ff9f1c, #48cae4);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: hueRotate 5s linear infinite;
+}
+
+/* ----- Cards Container ----- */
+.cards {
+  display: flex;
+  gap: 30px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ----- Card Base ----- */
+.card {
+  background: #1a1a2e;
+  border-radius: 20px;
+  padding: 40px 25px;
+  width: 240px;
+  position: relative;
+  cursor: pointer;
+  overflow: hidden;
+  transition: transform 0.4s, box-shadow 0.4s;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+
+/* ----- Layered Gradients ----- */
+.card::before, .card::after, .card::after-layer, .card .neon-lines {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  border-radius: 20px;
+  z-index: 0;
+  transition: transform 0.5s, opacity 0.5s;
+}
+
+.card::before {
+  background: linear-gradient(45deg, #ff4d6d, #ff9f1c, #48cae4, #3a0ca3);
+  opacity: 0.15;
+  transform: rotate(0deg);
+}
+
+.card::after {
+  background: linear-gradient(120deg, #3a0ca3, #ff4d6d, #ffbf69, #48cae4);
+  opacity: 0.08;
+  transform: rotate(90deg);
+}
+
+/* ----- Third Layer (Glitch Outline) ----- */
+.card::after-layer {
+  border: 2px solid #ff4d6d;
+  opacity: 0;
+  transform: scale(1.05);
+  pointer-events: none;
+}
+
+.card:hover::before {
+  transform: rotate(45deg);
+  opacity: 0.25;
+}
+
+.card:hover::after {
+  transform: rotate(135deg);
+  opacity: 0.2;
+}
+
+.card:hover::after-layer {
+  opacity: 1;
+  animation: glitchOutline 0.5s infinite;
+}
+
+/* ----- Fourth Layer: Neon Animated Lines ----- */
+.card .neon-lines {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  background: repeating-linear-gradient(
+    45deg,
+    rgba(255,77,109,0.3) 0px,
+    rgba(255,77,109,0.3) 2px,
+    transparent 2px,
+    transparent 6px
+  );
+  opacity: 0;
+  animation: lineMove 2s linear infinite;
+}
+
+.card:hover .neon-lines {
+  opacity: 1;
+}
+
+/* ----- Hover Effects ----- */
+.card:hover {
+  transform: translateY(-15px) scale(1.05);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.7), 0 0 20px #ff4d6d;
+}
+
+/* ----- Card Content ----- */
+.card h2 {
+  position: relative;
+  z-index: 1;
+  font-size: 1.6rem;
+  margin-bottom: 10px;
+  color: #fff;
+  text-shadow: 0 0 5px #ff4d6d;
+}
+.card p {
+  position: relative;
+  z-index: 1;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+  color: #ccc;
+}
+.card .price {
+  position: relative;
+  z-index: 1;
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: #ff4d6d;
+  text-shadow: 0 0 10px #ff4d6d, 0 0 20px #ff4d6d, 0 0 30px #ff4d6d;
+}
+
+/* ----- Button ----- */
+.card button {
+  position: relative;
+  z-index: 1;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(45deg, #ff4d6d, #ff9f1c);
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 5px 15px rgba(255,77,109,0.4);
+}
+
+.card button:hover {
+  background: linear-gradient(45deg, #ff006e, #ffbf69);
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(255,77,109,0.6);
+}
+
+/* ----- Keyframes ----- */
+@keyframes hueRotate {
+  0% { filter: hue-rotate(0deg); }
+  100% { filter: hue-rotate(360deg); }
+}
+
+@keyframes glitchOutline {
+  0% { transform: scale(1.05) translate(0,0) rotate(0deg); opacity:1; }
+  25% { transform: scale(1.05) translate(-2px,2px) rotate(-1deg); opacity:0.8; }
+  50% { transform: scale(1.05) translate(2px,-1px) rotate(1deg); opacity:0.9; }
+  75% { transform: scale(1.05) translate(-1px,1px) rotate(-0.5deg); opacity:1; }
+  100% { transform: scale(1.05) translate(0,0) rotate(0deg); opacity:1; }
+}
+
+@keyframes lineMove {
+  0% { background-position: 0 0; }
+  100% { background-position: 100px 100px; }
+}
+</style>
+</head>
+<body>
+
+<h1>Layered Neon Pricing</h1>
+
+<div class="cards">
+  <div class="card">
+    <h2>Basic</h2>
+    <p>Perfect for individuals</p>
+    <div class="price">$10</div>
+    <button>Select</button>
+    <div class="neon-lines"></div>
+  </div>
+  <div class="card">
+    <h2>Standard</h2>
+    <p>Best for small teams</p>
+    <div class="price">$25</div>
+    <button>Select</button>
+    <div class="neon-lines"></div>
+  </div>
+  <div class="card">
+    <h2>Premium</h2>
+    <p>For larger teams</p>
+    <div class="price">$50</div>
+    <button>Select</button>
+    <div class="neon-lines"></div>
+  </div>
+</div>
+
+</body>
+</html>
