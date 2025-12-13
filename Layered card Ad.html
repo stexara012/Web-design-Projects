@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Instagram Ad</title>
+
+<style>
+/* ========== BASE ========== */
+body{
+  margin:0;
+  background:#0f0f0f;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  font-family:Arial, sans-serif;
+}
+
+/* ========== AD CONTAINER (LAYER 1) ========== */
+.ad{
+  position:relative;
+  width:360px;
+  height:250px;
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:0 20px 60px rgba(0,0,0,.6);
+}
+
+/* ========== BACKGROUND GLOW (LAYER 2) ========== */
+.bg-glow{
+  position:absolute;
+  inset:-40px;
+  background:linear-gradient(135deg,#ff416c,#ff4b2b,#ff9f43);
+  filter:blur(40px);
+  opacity:.9;
+}
+
+/* ========== OVERLAY GLASS (LAYER 3) ========== */
+.overlay{
+  position:absolute;
+  inset:0;
+  background:rgba(255,255,255,.08);
+  backdrop-filter:blur(12px);
+}
+
+/* ========== CONTENT (LAYER 4) ========== */
+.content{
+  position:relative;
+  z-index:2;
+  padding:24px;
+  color:#fff;
+}
+
+/* ========== TEXT STYLES ========== */
+.logo{
+  font-size:22px;
+  font-weight:bold;
+  letter-spacing:1px;
+}
+
+.headline{
+  font-size:28px;
+  margin:18px 0;
+  line-height:1.1;
+}
+
+.text{
+  font-size:16px;
+  opacity:.9;
+}
+
+/* ========== BUTTON ========== */
+.btn{
+  margin-top:22px;
+  background:#fff;
+  color:#000;
+  padding:14px 22px;
+  border-radius:12px;
+  text-align:center;
+  font-weight:bold;
+  cursor:pointer;
+  user-select:none;
+  transition:transform .25s ease, box-shadow .25s ease;
+  box-shadow:0 10px 20px rgba(0,0,0,.3);
+}
+
+/* CSS hover fallback */
+.btn:hover{
+  transform:translateY(-3px) scale(1.05);
+  box-shadow:0 16px 30px rgba(0,0,0,.45);
+}
+</style>
+</head>
+
+<body>
+
+<div class="ad">
+  <div class="bg-glow"></div>
+  <div class="overlay"></div>
+
+  <div class="content">
+    <div class="logo">BRAND</div>
+    <div class="headline">Boost Your Sales</div>
+    <div class="text">High-quality solutions for modern businesses.</div>
+    <div class="btn" id="ctaBtn">Shop Now</div>
+  </div>
+</div>
+
+<script>
+/* ========== BUTTON HOVER EFFECT (JS) ========== */
+const btn = document.getElementById("ctaBtn");
+
+btn.addEventListener("mouseenter", () => {
+  btn.style.transform = "translateY(-4px) scale(1.08)";
+  btn.style.boxShadow = "0 20px 40px rgba(255,65,108,.6)";
+});
+
+btn.addEventListener("mouseleave", () => {
+  btn.style.transform = "translateY(0) scale(1)";
+  btn.style.boxShadow = "0 10px 20px rgba(0,0,0,.3)";
+});
+</script>
+
+</body>
+</html>
