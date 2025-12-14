@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10 Varijacija Layered Search Bara</title>
+<style>
+body {
+    background: #0d0d0f;
+    font-family: Arial, sans-serif;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 40px;
+    padding: 40px;
+    justify-items: center;
+    align-items: center;
+}
+
+/* KONTEJNER ZA SVAKU VARIJACIJU */
+.search-container {
+    position: relative;
+    width: 400px;
+    height: 65px;
+}
+
+/* OSNOVNI LAYER */
+.search-layer {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    z-index: 1;
+}
+
+/* REFLECTION / GLOW LAYER */
+.search-layer.reflection {
+    position: absolute;
+    inset: 0;
+    border-radius: 18px;
+    backdrop-filter: blur(12px);
+    z-index: 2;
+}
+
+/* GLASS SEARCH BAR */
+.search-bar {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    display: flex;
+    align-items: center;
+    padding: 0 18px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.07);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow:
+        0 0 15px rgba(0,255,255,0.3),
+        0 0 40px rgba(255,0,255,0.1),
+        inset 0 0 18px rgba(255,255,255,0.05);
+}
+
+/* FLOATING LABEL */
+.floating-label {
+    position: absolute;
+    left: 25px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: rgba(255,255,255,0.5);
+    font-size: 16px;
+    transition: 0.25s ease;
+    pointer-events: none;
+}
+
+/* INPUT */
+.search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    color: #fff;
+    font-size: 17px;
+    padding: 15px 0;
+}
+
+/* ICON */
+.search-icon {
+    margin-left: 14px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* ICON HOVER */
+.search-icon:hover {
+    transform: scale(1.15);
+}
+
+/* LABEL FOCUS */
+.search-input:focus ~ .floating-label,
+.search-input:not(:placeholder-shown) ~ .floating-label {
+    top: 12px;
+    font-size: 12px;
+    color: #00ffff;
+    opacity: 0.9;
+    letter-spacing: 1px;
+}
+
+/* FOCUS BAR */
+.search-bar:has(.search-input:focus) {
+    box-shadow:
+        0 0 18px rgba(0,255,255,0.6),
+        0 0 50px rgba(0,255,255,0.4),
+        inset 0 0 18px rgba(0,255,255,0.2);
+    border-color: rgba(0,255,255,0.5);
+}
+
+/* PULSE ANIMATION */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    40% { transform: scale(1.03); }
+    100% { transform: scale(1); }
+}
+
+/* ===================== VARIJACIJE ===================== */
+.var1 .search-layer { background: linear-gradient(135deg,#0a0a0a,#1a1a1a); box-shadow: inset 0 0 20px #00ffff; }
+.var1 .search-layer.reflection { background: linear-gradient(90deg, rgba(0,255,255,0.05), rgba(0,255,255,0.1), rgba(0,255,255,0.05)); }
+.var1 .search-bar { background: rgba(0,255,255,0.05); }
+.var1 .search-icon { background: #00ffff; color: #000; }
+
+.var2 .search-layer { background: linear-gradient(135deg,#1a001a,#330033); box-shadow: inset 0 0 20px #ff00ff; }
+.var2 .search-layer.reflection { background: linear-gradient(90deg, rgba(255,0,255,0.05), rgba(255,0,255,0.1), rgba(255,0,255,0.05)); }
+.var2 .search-bar { background: rgba(255,0,255,0.05); }
+.var2 .search-icon { background: #ff00ff; color: #000; }
+
+.var3 .search-layer { background: linear-gradient(135deg,#001a00,#003300); box-shadow: inset 0 0 20px #00ff00; }
+.var3 .search-layer.reflection { background: linear-gradient(90deg, rgba(0,255,0,0.05), rgba(0,255,0,0.1), rgba(0,255,0,0.05)); }
+.var3 .search-bar { background: rgba(0,255,0,0.05); }
+.var3 .search-icon { background: #00ff00; color: #000; }
+
+.var4 .search-layer { background: linear-gradient(135deg,#330a00,#661400); box-shadow: inset 0 0 20px #ff6600; }
+.var4 .search-layer.reflection { background: linear-gradient(90deg, rgba(255,102,0,0.05), rgba(255,102,0,0.1), rgba(255,102,0,0.05)); }
+.var4 .search-bar { background: rgba(255,102,0,0.05); }
+.var4 .search-icon { background: #ff6600; color: #000; }
+
+.var5 .search-layer { background: linear-gradient(135deg,#001a33,#003366); box-shadow: inset 0 0 20px #33ccff; }
+.var5 .search-layer.reflection { background: linear-gradient(90deg, rgba(51,204,255,0.05), rgba(51,204,255,0.1), rgba(51,204,255,0.05)); }
+.var5 .search-bar { background: rgba(51,204,255,0.05); }
+.var5 .search-icon { background: #33ccff; color: #000; }
+
+.var6 .search-layer { background: linear-gradient(135deg,#1a0033,#330066); box-shadow: inset 0 0 20px #cc33ff; }
+.var6 .search-layer.reflection { background: linear-gradient(90deg, rgba(204,51,255,0.05), rgba(204,51,255,0.1), rgba(204,51,255,0.05)); }
+.var6 .search-bar { background: rgba(204,51,255,0.05); }
+.var6 .search-icon { background: #cc33ff; color: #000; }
+
+.var7 .search-layer { background: linear-gradient(135deg,#332600,#664d00); box-shadow: inset 0 0 20px #ffd700; }
+.var7 .search-layer.reflection { background: linear-gradient(90deg, rgba(255,215,0,0.05), rgba(255,215,0,0.1), rgba(255,215,0,0.05)); }
+.var7 .search-bar { background: rgba(255,215,0,0.05); }
+.var7 .search-icon { background: #ffd700; color: #000; }
+
+.var8 .search-layer { background: linear-gradient(135deg,#330000,#660000); box-shadow: inset 0 0 20px #ff3333; }
+.var8 .search-layer.reflection { background: linear-gradient(90deg, rgba(255,51,51,0.05), rgba(255,51,51,0.1), rgba(255,51,51,0.05)); }
+.var8 .search-bar { background: rgba(255,51,51,0.05); }
+.var8 .search-icon { background: #ff3333; color: #000; }
+
+.var9 .search-layer { background: linear-gradient(135deg,#ffffff,#cccccc); box-shadow: inset 0 0 20px #ffffff; }
+.var9 .search-layer.reflection { background: linear-gradient(90deg, rgba(255,255,255,0.05), rgba(255,255,255,0.1), rgba(255,255,255,0.05)); }
+.var9 .search-bar { background: rgba(255,255,255,0.07); }
+.var9 .search-icon { background: #ffffff; color: #000; }
+
+.var10 .search-layer { background: linear-gradient(135deg,#ff0000,#ff9900,#33ff00,#00ffff,#6600ff); box-shadow: inset 0 0 20px #00ffff; }
+.var10 .search-layer.reflection { background: linear-gradient(90deg, rgba(0,255,255,0.05), rgba(255,0,255,0.05), rgba(255,255,0,0.05)); }
+.var10 .search-bar { background: rgba(255,255,255,0.05); }
+.var10 .search-icon { background: #00ffff; color: #000; }
+
+</style>
+</head>
+<body>
+
+<div class="search-container var1">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var2">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var3">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var4">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var5">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var6">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var7">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var8">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var9">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<div class="search-container var10">
+    <div class="search-layer"></div>
+    <div class="search-layer reflection"></div>
+    <div class="search-bar">
+        <label class="floating-label">Pretraži...</label>
+        <input type="text" class="search-input" placeholder=" ">
+        <div class="search-icon">🔍</div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll(".search-icon").forEach(icon => {
+    icon.addEventListener("click", () => {
+        const bar = icon.closest(".search-bar");
+        bar.style.animation = "pulse 0.4s";
+        setTimeout(() => bar.style.animation = "", 400);
+    });
+});
+</script>
+
+</body>
+</html>
