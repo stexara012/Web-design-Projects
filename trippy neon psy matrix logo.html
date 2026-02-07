@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Trippy Neon Psy Matrix</title>
+<style>
+:root{
+  --hue: 0deg;
+  --warp: 3;
+  --glow: 1;
+  --strobe: 0;
+}
+
+body{
+  margin:0;
+  overflow:hidden;
+  height:100vh;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#050007;
+  font-family:monospace;
+}
+
+#container{
+  position:relative;
+  filter:hue-rotate(var(--hue)) brightness(calc(1 + var(--glow)));
+}
+
+.layer{
+  position:absolute;
+  white-space:pre;
+  font-size:14px;
+  line-height:0.6;
+  top:-1380px;
+  left:-1220px;
+  pointer-events:none;
+}
+
+.far{ opacity:0.06; filter:blur(2px); transform:translate(12px,12px); }
+.mid{ opacity:0.14; filter:blur(1px); transform:translate(6px,6px); }
+.echo{ opacity:0.22; filter:blur(1px); }
+.main{ opacity:1; }
+.glow{ opacity:0.32; filter:blur(3px); }
+.future{ opacity:0.26; filter:blur(2px); }
+
+.head{ color:#ff00ff; text-shadow:0 0 10px #ff00ff; }
+.body{ color:rgba(0,255,255,0.6); }
+.logo{ color:rgba(255,255,255,0.95); text-shadow:0 0 8px rgba(255,255,255,0.9); }
+
+.btns{
+  position:fixed;
+  left:10px;
+  top:10px;
+  color:rgba(255,255,255,0.8);
+  font-family:monospace;
+}
+.btns span{
+  margin-right:12px;
+  cursor:pointer;
+  opacity:0.8;
+}
+.btns span:hover{ opacity:1; }
+
+.strobe{
+  animation:strobe 0.08s infinite;
+  opacity:var(--strobe);
+}
+@keyframes strobe{
+  0%{ filter:brightness(1); }
+  50%{ filter:brightness(3); }
+  100%{ filter:brightness(1); }
+}
+</style>
+</head>
+<body>
+
+<div class="btns">
+  <span id="b1">1</span>
+  <span id="b2">2</span>
+  <span id="b3">3</span>
+  <span id="b4">4</span>
+  <span id="b5">5</span>
+  <span id="b6">6</span>
+  <span id="b7">7</span>
+  <span id="b8">8</span>
+  <span id="play" style="margin-left:20px; cursor:pointer;">PLAY</span>
+</div>
+
+<div id="container">
+  <div class="layer far" id="l0"></div>
+  <div class="layer mid" id="l1"></div>
+  <div class="layer echo" id="l2"></div>
+  <div class="layer main" id="l3"></div>
+  <div class="layer glow" id="l4"></div>
+  <div class="layer future" id="l5"></div>
+</div>
+
+<script>
+/* CONFIG */
+const ROWS = 260;
+const COLS = 320;
+let mode = 1;
+let warpAmp = 3;
+
+/* SAMPLE LOGOS */
+const LOGOS = [
+`  ██████╗  ██████╗ ██████╗ ███████╗
+ ██╔═══██╗██╔═══██╗██╔══██╗██╔════╝
+ ██║   ██║██║   ██║██████╔╝█████╗  
+ ██║   ██║██║   ██║██╔══██╗██╔══╝  
+ ╚██████╔╝╚██████╔╝██║  ██║███████╗
+  ╚═════╝  ╚═════╝ ╚═╝  ╚═╝╚══════╝`,
+
+`   ____   _   _  _____ _   _ 
+  / __ \\ | \\ | |/ ____| \\ | |
+ | |  | ||  \\| | (___ |  \\| |
+ | |  | || . \` |\\___ \\| . \` |
+ | |__| || |\\  |____) | |\\  |
+  \\____/ |_| \\_|_____/|_| \\_|`,
+
+`   ███╗   ███╗██╗   ██╗███╗   ██╗
+   ████╗ ████║██║   ██║████╗  ██║
+   ██╔████╔██║██║   ██║██╔██╗ ██║
+   ██║╚██╔╝██║██║   ██║██║╚██╗██║
+   ██║ ╚═╝ ██║╚██████╔╝██║ ╚████║
+   ╚═╝     ╚═╝ ╚═════╝ ╚═╝  ╚═══╝`
+];
+
+/* UTIL */
+const empty = () => Array.from({ length: ROWS }, () => Array(COLS).fill(" "));
+let grid = empty();
+let history = [];
+
+/* logo control */
+let logoIndex = 0;
+let logoGrid = empty();
+
+function buildLogoGrid(){
+  const LOGO = LOGOS[logoIndex];
+  const logoLines = LOGO.replace(/\t/g," ").split("\n");
+  const logoH = logoLines.length;
+  const logoW = Math.max(...logoLines.map(l => l.length));
+
+  const startY = Math.max(0, (ROWS / 2 - logoH / 2) | 0);
+  const startX = Math.max(0, (COLS / 2 - logoW / 2) | 0);
+
+  logoGrid = empty();
+  logoLines.forEach((line, y) => {
+    [...line].forEach((ch, x) => {
+      if (ch !== " " && startY + y < ROWS && startX + x < COLS)
+        logoGrid[startY + y][startX + x] = ch;
+    });
+  });
+}
+buildLogoGrid();
+
+/* MATRIX */
+const cols = Array.from({ length: COLS }, () => ({
+  y: Math.random() * ROWS,
+  speed: 0.4 + Math.random() * 1.4,
+  len: 10 + Math.random() * 14
+}));
+
+/* SAND */
+const sand = empty();
+const sandChars = ["@", "#", "%", "+", "."];
+
+/* PARTICLES */
+let particles = [];
+
+/* STEP */
+function step() {
+  grid = empty();
+
+  // logo base
+  for (let y = 0; y < ROWS; y++)
+    for (let x = 0; x < COLS; x++)
+      if (logoGrid[y][x] !== " ")
+        grid[y][x] = logoGrid[y][x];
+
+  if (mode === 6) sandStep();
+  else matrixStep();
+
+  updateParticles();
+}
+
+function matrixStep() {
+  cols.forEach(c => {
+    c.y += c.speed * (1 + warpAmp/8);
+    if (c.y > ROWS + c.len) c.y = -c.len;
+
+    for (let i = 0; i < c.len; i++) {
+      const y = (c.y | 0) - i;
+      if (y >= 0 && y < ROWS && logoGrid[y][c.x] === " ")
+        grid[y][c.x] = i === 0 ? "@" : ".";
+    }
+  });
+}
+
+function sandStep() {
+  if (Math.random() < 0.6)
+    sand[0][Math.random() * COLS | 0] = sandChars[Math.random() * sandChars.length | 0];
+
+  for (let y = ROWS - 2; y >= 0; y--)
+    for (let x = 0; x < COLS; x++)
+      if (sand[y][x] !== " " && sand[y+1][x] === " ") {
+        sand[y+1][x] = sand[y][x];
+        sand[y][x] = " ";
+      }
+
+  for (let y=0;y<ROWS;y++)
+    for (let x=0;x<COLS;x++)
+      if (sand[y][x] !== " " && logoGrid[y][x] === " ")
+        grid[y][x] = sand[y][x];
+}
+
+/* X explosion */
+function explode(cx, cy) {
+  for (let i = -40; i <= 40; i++) {
+    spawnParticle(cx + i, cy + i);
+    spawnParticle(cx + i, cy - i);
+  }
+}
+
+function spawnParticle(x, y) {
+  particles.push({
+    x, y,
+    vx: (Math.random() - 0.5) * 3,
+    vy: (Math.random() - 0.5) * 3,
+    life: 30 + Math.random() * 20,
+    ch: Math.random() > 0.5 ? "#" : "%"
+  });
+}
+
+function updateParticles() {
+  particles.forEach(p => {
+    p.x += p.vx;
+    p.y += p.vy;
+    p.life--;
+    if (p.life > 0 && p.x>=0 && p.x<COLS && p.y>=0 && p.y<ROWS)
+      grid[p.y|0][p.x|0] = p.ch;
+  });
+  particles = particles.filter(p => p.life > 0);
+}
+
+/* warp + glitch */
+let t = 0;
+function warp(g, amp, glitch=false) {
+  const out = empty();
+  for (let y=0;y<ROWS;y++){
+    const dx = Math.sin(y*0.04 + t) * amp;
+    for (let x=0;x<COLS;x++){
+      let nx = (x + dx) | 0;
+
+      if (glitch && Math.random() < 0.002) nx += (Math.random() < 0.5 ? -3 : 3);
+
+      if (nx>=0 && nx<COLS)
+        out[y][nx] = g[y][x];
+    }
+  }
+  return out;
+}
+
+/* kaleido */
+function kaleido(g) {
+  const out = empty();
+  for (let y=0;y<ROWS;y++){
+    for (let x=0;x<COLS;x++){
+      const ch = g[y][x];
+      if (ch === " ") continue;
+      const rx = COLS - x - 1;
+      const ry = ROWS - y - 1;
+      out[y][x] = ch;
+      out[y][rx] = ch;
+      out[ry][x] = ch;
+      out[ry][rx] = ch;
+    }
+  }
+  return out;
+}
+
+/* vortex */
+function vortex(g){
+  const out = empty();
+  const cx = COLS/2, cy = ROWS/2;
+  for(let y=0;y<ROWS;y++){
+    for(let x=0;x<COLS;x++){
+      const ch = g[y][x];
+      if(ch===" ") continue;
+      const dx = x-cx, dy = y-cy;
+      const r = Math.sqrt(dx*dx+dy*dy);
+      const a = Math.atan2(dy,dx) + Math.sin(r*0.08 + t)*0.8;
+      const nx = (cx + Math.cos(a)*r)|0;
+      const ny = (cy + Math.sin(a)*r)|0;
+      if(nx>=0 && nx<COLS && ny>=0 && ny<ROWS)
+        out[ny][nx]=ch;
+    }
+  }
+  return out;
+}
+
+/* melt */
+function melt(g){
+  const out = empty();
+  for(let y=ROWS-2;y>=0;y--){
+    for(let x=0;x<COLS;x++){
+      const ch = g[y][x];
+      if(ch===" ") continue;
+      if(Math.random()<0.03){
+        const nx = x + (Math.random()<0.5 ? -1 : 1);
+        const ny = y+1;
+        if(nx>=0 && nx<COLS && ny<ROWS){
+          out[ny][nx] = ch;
+          continue;
+        }
+      }
+      out[y][x]=ch;
+    }
+  }
+  return out;
+}
+
+/* render */
+function render(el, g) {
+  let html="";
+  for (let y=0;y<ROWS;y++){
+    for (let x=0;x<COLS;x++){
+      const ch = g[y][x];
+      if (ch === "@") html += `<span class="head">@</span>`;
+      else if (ch === ".") html += `<span class="body">.</span>`;
+      else if (ch !== " ") html += `<span class="logo">${ch}</span>`;
+      else html += " ";
+    }
+    html += "\n";
+  }
+  el.innerHTML = html;
+}
+
+/* LOOP */
+function loop(){
+  t += 0.03;
+  document.documentElement.style.setProperty("--hue", `${t*25}deg`);
+  document.documentElement.style.setProperty("--warp", warpAmp);
+
+  step();
+
+  // MODES
+  if(mode===1){ // FRACTURE
+    render(l0, warp(history[5]||grid, 8, true));
+    render(l1, warp(history[4]||grid, 6, true));
+    render(l2, warp(history[3]||grid, 4, true));
+    render(l3, warp(history[2]||grid, 2, true));
+    render(l4, warp(history[1]||grid, 1, true));
+    render(l5, warp(grid, 3, true));
+    document.getElementById("container").classList.remove("strobe");
+  }
+
+  if(mode===2){ // PORTAL
+    render(l0, warp(history[5]||grid, 10));
+    render(l1, warp(history[4]||grid, 8));
+    render(l2, warp(history[3]||grid, 6));
+    render(l3, warp(history[2]||grid, 3));
+    render(l4, warp(history[1]||grid, 2));
+    render(l5, warp(grid, 5));
+    document.getElementById("container").classList.remove("strobe");
+  }
+
+  if(mode===3){ // KALEIDO
+    const k = kaleido(grid);
+    render(l0, warp(history[5]||k, 6));
+    render(l1, warp(history[4]||k, 4));
+    render(l2, warp(history[3]||k, 3));
+    render(l3, warp(history[2]||k, 1));
+    render(l4, warp(history[1]||k, 1));
+    render(l5, warp(k, 2));
+    document.getElementById("container").classList.remove("strobe");
+  }
+
+  if(mode===4){ // VORTEX
+    const v = vortex(grid);
+    render(l0, warp(history[5]||v, 10));
+    render(l1, warp(history[4]||v, 8));
+    render(l2, warp(history[3]||v, 6));
+    render(l3, warp(history[2]||v, 3));
+    render(l4, warp(history[1]||v, 2));
+    render(l5, warp(v, 5));
+    document.getElementById("container").classList.remove("strobe");
+  }
+
+  if(mode===5){ // GLITCH
+    render(l0, warp(history[5]||grid, 12, true));
+    render(l1, warp(history[4]||grid, 10, true));
+    render(l2, warp(history[3]||grid, 8, true));
+    render(l3, warp(history[2]||grid, 4, true));
+    render(l4, warp(history[1]||grid, 2, true));
+    render(l5, warp(grid, 6, true));
+    document.getElementById("container").classList.remove("strobe");
+  }
+
+  if(mode===6){ // MELT
+    const m = melt(grid);
+    render(l0, warp(history[5]||m, 6));
+    render(l1, warp(history[4]||m, 4));
+    render(l2, warp(history[3]||m, 3));
+    render(l3, warp(history[2]||m, 1));
+    render(l4, warp(history[1]||m, 1));
+    render(l5, warp(m, 2));
+    document.getElementById("container").classList.remove("strobe");
+  }
+
+  if(mode===7){ // RAINBOW WAVE
+    document.documentElement.style.setProperty("--hue", `${t*80}deg`);
+    render(l0, warp(history[5]||grid, 8));
+    render(l1, warp(history[4]||grid, 6));
+    render(l2, warp(history[3]||grid, 4));
+    render(l3, warp(history[2]||grid, 2));
+    render(l4, warp(history[1]||grid, 1));
+    render(l5, warp(grid, 3));
+    document.getElementById("container").classList.remove("strobe");
+  }
+
+  if(mode===8){ // STROBE
+    document.documentElement.style.setProperty("--strobe", 1);
+    document.getElementById("container").classList.add("strobe");
+    render(l0, warp(history[5]||grid, 12, true));
+    render(l1, warp(history[4]||grid, 10, true));
+    render(l2, warp(history[3]||grid, 8, true));
+    render(l3, warp(history[2]||grid, 4, true));
+    render(l4, warp(history[1]||grid, 2, true));
+    render(l5, warp(grid, 6, true));
+  } else {
+    document.documentElement.style.setProperty("--strobe", 0);
+  }
+
+  history.unshift(grid.map(r=>r.slice()));
+  if(history.length > 6) history.pop();
+
+  requestAnimationFrame(loop);
+}
+
+/* BUTTONS */
+document.getElementById("b1").onclick = ()=> mode=1;
+document.getElementById("b2").onclick = ()=> mode=2;
+document.getElementById("b3").onclick = ()=> mode=3;
+document.getElementById("b4").onclick = ()=> mode=4;
+document.getElementById("b5").onclick = ()=> mode=5;
+document.getElementById("b6").onclick = ()=> mode=6;
+document.getElementById("b7").onclick = ()=> mode=7;
+document.getElementById("b8").onclick = ()=> mode=8;
+
+document.getElementById("play").onclick = startAudio;
+
+/* keyboard */
+document.addEventListener("keydown", e=>{
+  if(e.key>="1" && e.key<="8") mode = parseInt(e.key);
+  if(e.key === "x") explode(COLS/2, ROWS/2);
+  if(e.key === "l"){ // change logo
+    logoIndex = (logoIndex + 1) % LOGOS.length;
+    buildLogoGrid();
+  }
+});
+
+/* click explosion */
+document.addEventListener("click", e=>{
+  const x = (e.clientX / innerWidth * COLS) | 0;
+  const y = (e.clientY / innerHeight * ROWS) | 0;
+  explode(x, y);
+});
+
+/* mouse parallax */
+document.addEventListener("mousemove", e=>{
+  const x = (e.clientX/innerWidth - 0.5)*30;
+  const y = (e.clientY/innerHeight - 0.5)*30;
+  document.getElementById("container").style.transform = `translate(${x}px,${y}px)`;
+});
+
+/* AUDIO */
+let audioCtx, analyser, dataArray;
+async function startAudio(){
+  if(audioCtx) return;
+  audioCtx = new AudioContext();
+  const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_f2c3f7c99f.mp3?filename=8-bit-loop-11296.mp3");
+  audio.crossOrigin="anonymous";
+  audio.loop=true;
+  await audio.play();
+
+  const src = audioCtx.createMediaElementSource(audio);
+  analyser = audioCtx.createAnalyser();
+  analyser.fftSize = 256;
+  src.connect(analyser);
+  analyser.connect(audioCtx.destination);
+
+  dataArray = new Uint8Array(analyser.frequencyBinCount);
+  requestAnimationFrame(updateBass);
+}
+
+function updateBass(){
+  analyser.getByteFrequencyData(dataArray);
+  let bass=0;
+  for(let i=0;i<20;i++) bass += dataArray[i];
+  bass /= 20;
+
+  warpAmp = 3 + bass/40;
+  document.documentElement.style.setProperty("--glow", `${0.4 + bass/120}`);
+  requestAnimationFrame(updateBass);
+}
+
+loop();
+</script>
+</body>
+</html>

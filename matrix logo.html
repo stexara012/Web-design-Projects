@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ASCII Psychedelic Matrix</title>
+<style>
+:root {
+  --neon1: rgba(255,0,255,1);
+  --neon2: rgba(0,255,255,1);
+  --neon3: rgba(255,255,0,1);
+}
+
+body {
+  margin: 0;
+  background: #040008;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-family: monospace;
+}
+
+#container {
+  position: relative;
+  transform: scale(2); /* 2x logo */
+}
+
+.layer {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  white-space: pre;
+  font-size: 8px; /* 2x size */
+  line-height: 0.6;
+}
+
+.head { color: var(--neon1); text-shadow: 0 0 10px var(--neon1); }
+.body { color: rgba(0,255,255,0.6); }
+.logo { color: rgba(255,255,255,0.9); text-shadow: 0 0 8px rgba(255,255,255,0.8); }
+
+.glitch {
+  animation: glitch 0.25s infinite;
+}
+@keyframes glitch {
+  0% { transform: translate(0,0); }
+  20% { transform: translate(-2px, 1px); }
+  40% { transform: translate(2px, -1px); }
+  60% { transform: translate(-1px, -2px); }
+  80% { transform: translate(1px, 2px); }
+  100% { transform: translate(0,0); }
+}
+
+#ui {
+  position: fixed;
+  left: 10px;
+  top: 10px;
+  color: rgba(255,255,255,0.8);
+  font-family: monospace;
+  z-index: 10;
+}
+#ui div { margin: 6px 0; }
+
+#burst {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  opacity: 0;
+  background: radial-gradient(circle at center, rgba(255,0,255,0.7), transparent 60%);
+  transition: opacity 0.15s ease-out;
+}
+</style>
+</head>
+
+<body>
+
+<div id="container">
+  <div class="layer" id="l0"></div>
+  <div class="layer" id="l1"></div>
+  <div class="layer" id="l2"></div>
+  <div class="layer" id="l3"></div>
+</div>
+
+<div id="burst"></div>
+
+<div id="ui">
+  <div>Modes: 1 Matrix | 2 Portal | 3 Vortex | 4 Melt</div>
+  <div>Press 1–4</div>
+</div>
+
+<script>
+const ROWS = 260;
+const COLS = 320;
+
+/* ========== SAMPLE LOGOS ========== */
+const LOGOS = [
+`  ___   _   _  _   _  ___   ___ 
+ | _ ) /_\\ | \\| | /_\\| _ \\ / __|
+ | _ \\/ _ \\| .\` |/ _ \\  _/ \\__ \\
+ |___/_/ \\_\\_|\\_/_/ \\_\\_|   |___|
+`,
+`  __  __   ___   _   _  ___  
+ |  \\/  | / _ \\ | | | |/ _ \\ 
+ | |\\/| || | | || | | | | | |
+ | |  | || |_| || |_| | |_| |
+ |_|  |_| \\___/  \\___/ \\___/ 
+`,
+`  ____   _   _  ____  _   _ 
+ |  _ \\ | | | ||  _ \\| | | |
+ | |_) || |_| || |_) | |_| |
+ |  __/ |  _  ||  __/|  _  |
+ |_|    |_| |_||_|   |_| |_|
+`
+];
+
+const LOGO = LOGOS[0]; // change index 0-2 to choose sample logo
+
+/* ===== BUILD GRID ===== */
+function buildGrid(text){
+  return text
+    .trim()
+    .split("\n")
+    .map(l => l.replace(/\t/g," ").split(""));
+}
+
+const logoLines = buildGrid(LOGO);
+const logoH = logoLines.length;
+const logoW = Math.max(...logoLines.map(l => l.length));
+
+const startY = (ROWS/2 - logoH/2)|0;
+const startX = (COLS/2 - logoW/2)|0;
+
+const logoGrid = Array.from({length: ROWS}, () => Array(COLS).fill(" "));
+for(let y=0; y<logoH; y++){
+  for(let x=0; x<logoLines[y].length; x++){
+    const ch = logoLines[y][x];
+    if(ch !== " " && startY+y<ROWS && startX+x<COLS){
+      logoGrid[startY+y][startX+x] = ch;
+    }
+  }
+}
+
+/* MATRIX */
+const cols = Array.from({ length: COLS }, () => ({
+  y: Math.random() * ROWS,
+  speed: 0.4 + Math.random() * 1.4,
+  len: 10 + Math.random() * 14
+}));
+
+let mode = 1;
+const l0 = document.getElementById("l0");
+const l1 = document.getElementById("l1");
+const l2 = document.getElementById("l2");
+const l3 = document.getElementById("l3");
+const burst = document.getElementById("burst");
+
+function clearGrid(){
+  return Array.from({length: ROWS}, () => Array(COLS).fill(" "));
+}
+
+function matrixStep(){
+  const g = clearGrid();
+  cols.forEach((c, x) => {
+    c.y += c.speed;
+    if(c.y > ROWS + c.len) c.y = -c.len;
+
+    for(let i=0; i<c.len; i++){
+      const y = (c.y|0) - i;
+      if(y>=0 && y<ROWS){
+        if(logoGrid[y][x] === " ") {
+          g[y][x] = i===0 ? "@" : ".";
+        }
+      }
+    }
+  });
+  return g;
+}
+
+function portalStep(){
+  const g = clearGrid();
+  cols.forEach((c, x) => {
+    c.y += c.speed * 1.2;
+    if(c.y > ROWS + c.len) c.y = -c.len;
+    for(let i=0; i<c.len; i++){
+      const y = (c.y|0) - i;
+      if(y>=0 && y<ROWS){
+        if(logoGrid[y][x] !== " ") {
+          g[y][x] = i===0 ? "@" : ".";
+        }
+      }
+    }
+  });
+  return g;
+}
+
+function vortexStep(){
+  const g = clearGrid();
+  const cx = COLS/2, cy = ROWS/2;
+  cols.forEach((c, x) => {
+    c.y += c.speed * 0.8;
+    if(c.y > ROWS + c.len) c.y = -c.len;
+    for(let i=0;i<c.len;i++){
+      const y = (c.y|0) - i;
+      if(y>=0 && y<ROWS){
+        const dx = x - cx;
+        const dy = y - cy;
+        const angle = Math.atan2(dy, dx);
+        const r = Math.sqrt(dx*dx + dy*dy);
+        const nx = Math.round(cx + Math.cos(angle + 0.03*r) * r);
+        const ny = Math.round(cy + Math.sin(angle + 0.03*r) * r);
+        if(nx>=0 && nx<COLS && ny>=0 && ny<ROWS && logoGrid[ny][nx] === " ")
+          g[ny][nx] = i===0 ? "@" : ".";
+      }
+    }
+  });
+  return g;
+}
+
+function meltStep(){
+  const g = clearGrid();
+  cols.forEach((c,x) => {
+    c.y += c.speed;
+    if(c.y > ROWS + c.len) c.y = -c.len;
+    for(let i=0;i<c.len;i++){
+      const y = (c.y|0) - i;
+      if(y>=0 && y<ROWS){
+        if(logoGrid[y][x] !== " " && Math.random() < 0.35){
+          g[y][x] = i===0 ? "@" : ".";
+        }
+      }
+    }
+  });
+  return g;
+}
+
+let burstTimer = 0;
+function triggerBurst(){
+  burst.style.opacity = "1";
+  burstTimer = 8;
+}
+function updateBurst(){
+  if(burstTimer>0){
+    burstTimer--;
+    if(burstTimer===0) burst.style.opacity = "0";
+  }
+}
+
+function render(el, grid){
+  let html = "";
+  for(let y=0; y<ROWS; y++){
+    for(let x=0; x<COLS; x++){
+      const ch = grid[y][x];
+      if(ch === "@") html += `<span class="head">@</span>`;
+      else if(ch === ".") html += `<span class="body">.</span>`;
+      else if(logoGrid[y][x] !== " ") html += `<span class="logo">${logoGrid[y][x]}</span>`;
+      else html += " ";
+    }
+    html += "\n";
+  }
+  el.innerHTML = html;
+}
+
+document.addEventListener("keydown", (e) => {
+  if(e.key >= "1" && e.key <= "4"){
+    mode = parseInt(e.key);
+    l3.classList.remove("glitch");
+    if(mode===2 || mode===3) l3.classList.add("glitch");
+  }
+});
+
+function loop(){
+  let grid;
+  if(mode===1) grid = matrixStep();
+  if(mode===2) grid = portalStep();
+  if(mode===3) grid = vortexStep();
+  if(mode===4) grid = meltStep();
+
+  let hit = false;
+  for(let y=0;y<ROWS && !hit;y++){
+    for(let x=0;x<COLS;x++){
+      if(grid[y][x] !== " " && logoGrid[y][x] !== " "){
+        hit = true; break;
+      }
+    }
+  }
+  if(hit) triggerBurst();
+
+  updateBurst();
+  render(l0, grid);
+  render(l1, grid);
+  render(l2, grid);
+  render(l3, grid);
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
+</body>
+</html>
