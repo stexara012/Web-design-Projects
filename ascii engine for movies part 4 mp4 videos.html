@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ASCII Engine – Stable Color + Subtle Threshold Mask</title>
+
+<style>
+body {
+  background: #fff;
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+}
+
+.controls {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.ascii-art {
+  white-space: pre;
+  line-height: 0.6;
+  font-size: 8px;
+  scale: 0.5;
+  zoom: 2;
+}
+
+/* ===== BOJE (STABILNE) ===== */
+.plava3 { color: #4169E1; }
+.crvena { color: #FF3030; }
+.bordo  { color: #640000; }
+.krem   { color: #F5DEB3; }
+.crna   { color: black; }
+
+/* ===== SUBTLE MASK ===== */
+.mask {
+  opacity: 0.15; /* jedva vidljivo */
+}
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  Threshold:
+  <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.4">
+  Speed:
+  <input id="speed" type="range" min="50" max="600" step="10" value="200">
+  <input type="file" id="videoUpload" accept="video/mp4">
+
+<video id="video" style="display:none;" playsinline></video>
+<canvas id="canvas" style="display:none;"></canvas>
+Zoom:
+<input id="zoom" type="range" min="1" max="3" step="0.1" value="1">
+
+
+</div>
+
+<div id="ascii" class="ascii-art"></div>
+
+<script>
+const densityChars = ['@','#','*','+','.',':'];
+
+const density = {
+  '@': 1.0,
+  '#': 0.9,
+  '*': 0.7,
+  '+': 0.5,
+  '.': 0.3,
+  ':': 0.2
+};
+
+const colorMap = {
+  '@': 'crna',
+  '#': 'crvena',
+  '*': 'crvena',
+  '+': 'krem',
+  '.': 'bordo',
+  ':': 'bordo'
+};
+const zoomSlider = document.getElementById('zoom');
+
+const ascii = document.getElementById('ascii');
+const thresholdSlider = document.getElementById('threshold');
+const speedSlider = document.getElementById('speed');
+const video = document.getElementById('video');
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+const upload = document.getElementById('videoUpload');
+
+let startTime = Date.now();
+
+/* ================== VIDEO LOAD ================== */
+upload.addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+
+  video.src = URL.createObjectURL(file);
+  video.play();
+});
+
+/* ================== DYNAMIC THRESHOLD ================== */
+function dynamicThreshold(base, time) {
+  return base + 0.08 * Math.sin(time * 0.003);
+}
+
+function curve(d) {
+  return d * d;
+}
+
+/* ================== PIXELS → ASCII ================== */
+function frameToAscii(baseThreshold, time) {
+
+  const width = 200;     // rezolucija (manje = brže)
+  const height = 200;
+
+  canvas.width = width;
+  canvas.height = height;
+
+ const zoom = parseFloat(zoomSlider.value);
+
+const vw = video.videoWidth;
+const vh = video.videoHeight;
+
+/* Uzmi manju stranu da dobiješ kvadrat */
+const side = Math.min(vw, vh) / zoom;
+
+const cropX = (vw - side) / 2;
+const cropY = (vh - side) / 2;
+
+ctx.drawImage(
+  video,
+  cropX, cropY, side, side,   // square crop
+  0, 0, width, height         // square output
+);
+
+
+
+  const imageData = ctx.getImageData(0, 0, width, height);
+  const data = imageData.data;
+
+  let text = '';
+  const t = dynamicThreshold(baseThreshold, time);
+
+  for (let y = 0; y < height; y += 2) {
+    for (let x = 0; x < width; x++) {
+
+      const i = (y * width + x) * 4;
+      const r = data[i];
+      const g = data[i+1];
+      const b = data[i+2];
+
+      const brightness = (r + g + b) / 3 / 255;
+
+      const index = Math.floor(
+        brightness * (densityChars.length - 1)
+      );
+
+      const ch = densityChars[index];
+
+      const d = curve(density[ch]);
+      const masked = d < t;
+      const cls = masked
+        ? `${colorMap[ch]} mask`
+        : colorMap[ch];
+
+      text += `<span class="${cls}">${ch}</span>`;
+    }
+    text += '<br>';
+  }
+
+  return text;
+}
+
+/* ================== LOOP ================== */
+function loop() {
+
+  if (!video.paused && !video.ended) {
+
+    const baseThreshold = parseFloat(thresholdSlider.value);
+    const time = Date.now() - startTime;
+
+    ascii.innerHTML = frameToAscii(baseThreshold, time);
+  }
+
+  requestAnimationFrame(loop);
+}
+
+loop();
+</script>
