@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ULTRA ASCII MP4 ENGINE</title>
+
+<style>
+body {
+  background: radial-gradient(circle at center, #1a1a1a, #000);
+  margin: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: monospace;
+  color: white;
+}
+
+.controls {
+  margin-bottom: 10px;
+  font-size: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.ascii-art {
+  white-space: pre;
+  line-height: 0.55;
+  font-size: 6px;
+  display: inline-block;
+  filter: contrast(1.2) brightness(1.1);
+}
+
+.mask { opacity: 0.15; }
+
+input[type="range"] {
+  width: 120px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="controls">
+  📂 <input type="file" id="fileInput" accept="video/mp4">
+  Threshold <input id="threshold" type="range" min="0" max="1" step="0.01" value="0.4">
+  Speed <input id="speed" type="range" min="10" max="120" step="5" value="60">
+  Contrast <input id="contrast" type="range" min="0.5" max="2" step="0.1" value="1.2">
+</div>
+
+<div id="ascii" class="ascii-art"></div>
+
+<video id="video" autoplay loop muted playsinline style="display:none"></video>
+<canvas id="canvas" style="display:none"></canvas>
+
+<script>
+
+/* ================== SETTINGS ================== */
+
+const density = "@#%*+:. ";
+const ascii = document.getElementById("ascii");
+const video = document.getElementById("video");
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const thresholdSlider = document.getElementById("threshold");
+const speedSlider = document.getElementById("speed");
+const contrastSlider = document.getElementById("contrast");
+const fileInput = document.getElementById("fileInput");
+
+/* ================== FILE BROWSER ================== */
+
+fileInput.addEventListener("change", e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  video.src = url;
+  video.play();
+});
+
+/* ================== BRIGHTNESS MAP ================== */
+
+function brightnessToChar(brightness){
+  const index = Math.floor((brightness / 255) * (density.length - 1));
+  return density[index];
+}
+
+/* ================== RLE ================== */
+
+function rleCompress(line){
+  let out = [];
+  let last = line[0];
+  let count = 1;
+  for(let i=1;i<line.length;i++){
+    if(line[i]===last) count++;
+    else{
+      out.push([count,last]);
+      last=line[i];
+      count=1;
+    }
+  }
+  out.push([count,last]);
+  return out;
+}
+
+function rleDecompress(rle){
+  return rle.map(([n,ch])=>ch.repeat(n)).join("");
+}
+
+/* ================== DELTA ================== */
+
+let lastFrame = null;
+
+function applyDelta(newFrame){
+  if(!lastFrame){
+    lastFrame = newFrame;
+    return newFrame;
+  }
+  let result = [];
+  for(let i=0;i<newFrame.length;i++){
+    if(newFrame[i]!==lastFrame[i]) result[i]=newFrame[i];
+    else result[i]=lastFrame[i];
+  }
+  lastFrame = result;
+  return result;
+}
+
+/* ================== CINEMATIC CURVE ================== */
+
+function curve(v, contrast){
+  v /= 255;
+  v = (v - 0.5) * contrast + 0.5;
+  return Math.max(0, Math.min(1, v)) * 255;
+}
+
+/* ================== RENDER LOOP (GPU STYLE) ================== */
+
+function render(){
+
+  if(video.paused || video.ended){
+    requestAnimationFrame(render);
+    return;
+  }
+
+  const speed = parseInt(speedSlider.value);
+  const baseThreshold = parseFloat(thresholdSlider.value);
+  const contrast = parseFloat(contrastSlider.value);
+  const time = Date.now();
+
+  const w = 160;
+  const h = 90;
+
+  canvas.width = w;
+  canvas.height = h;
+  ctx.drawImage(video,0,0,w,h);
+
+  const data = ctx.getImageData(0,0,w,h).data;
+  let frameLines = [];
+  let t = baseThreshold + 0.1*Math.sin(time*0.002);
+
+  for(let y=0;y<h;y++){
+    let line="";
+    for(let x=0;x<w;x++){
+      const i=(y*w+x)*4;
+      let r=data[i];
+      let g=data[i+1];
+      let b=data[i+2];
+
+      let brightness = 0.299*r + 0.587*g + 0.114*b;
+      brightness = curve(brightness, contrast);
+
+      let char = brightnessToChar(brightness);
+
+      if(brightness/255 < t){
+        char = `<span class="mask">${char}</span>`;
+      } else {
+        char = `<span style="color:rgb(${r},${g},${b});text-shadow:0 0 2px rgb(${r},${g},${b})">${char}</span>`;
+      }
+
+      line+=char;
+    }
+    frameLines.push(line);
+  }
+
+  frameLines = applyDelta(frameLines);
+
+  ascii.innerHTML = frameLines.join("<br>");
+
+  setTimeout(()=>requestAnimationFrame(render),1000/speed);
+}
+
+video.addEventListener("play",()=>requestAnimationFrame(render));
+
+</script>
+
+</body>
+</html>
