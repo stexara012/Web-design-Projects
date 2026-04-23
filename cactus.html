@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="sr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Color map ASCII art</title>
+  <style>
+    body {
+      background-color: hsl(286, 85%, 52%);
+      color: rgb(247, 240, 240);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
+      
+      
+      
+      
+    }
+    
+    .ascii-art {
+      font-family: monospace;
+      white-space: pre;
+      line-height: 0.6;
+      font-size:6px;
+      scale: 0.6;
+
+      
+     
+   
+   
+      
+      
+     
+    }   
+
+    .plava1{
+      color: rgb(7, 84, 156);
+       text-shadow: 0 0 5px rgb(177, 4, 4)
+      0 0 10px rgba(141, 1, 1, 0.986);
+      
+    }
+    .plava2{
+      color: rgb(3, 13, 71);
+     
+      
+      
+    }
+    .plava3{
+      color: rgb(10, 151, 233);
+      
+      
+    }
+    .crvena{
+      color: rgb(245, 188, 0);
+      text-shadow: 0 0 5px rgb(177, 4, 4)
+      0 0 10px rgba(141, 1, 1, 0.986);
+  
+     
+      
+    }
+    .narandzasta{
+      color: rgb(235, 213, 22);
+     
+      
+      
+    }.bela1{
+      color: rgb(255, 255, 255);
+      
+    }  
+    .bela{
+      color: rgb(29, 214, 12);
+   
+    }  
+    .krem{
+      color: rgb(214, 193, 99);
+      
+    }
+    .crna{
+      color: black;
+     
+      
+    }
+    .pink{
+      color: rgb(252, 169, 241);
+    }  
+    .purple{
+      color: blueviolet;
+    }
+  
+    @keyframes levitate {
+  0%   { transform: translateY(0); }
+  50%  { transform: translateY(-20px); }
+  100% { transform: translateY(0); }
+}
+
+.levitate {
+  animation: levitate 3s ease-in-out infinite;
+}
+  </style>
+</head>
+<body>
+  
+ <div id="ascii-container" class="ascii-art"></div>
+
+  <script>
+    function colorAsciiArt(asciiText) {
+      const colorMap = {
+        '#': 'crna',
+        '.': 'crna',
+        '*': 'crvena',
+        '+': 'bela1',
+        '=': 'bela1',
+        ':': 'bela1',
+        '-': 'bela1',
+        '@': 'crna',
+        '%': 'crna',
+        
+      };
+  
+      let coloredHtml = '';
+      for (const char of asciiText) {
+        if (colorMap[char]) {
+          coloredHtml += `<span class="${colorMap[char]}">${char}</span>`;
+        } else if (char === '\n') {
+          coloredHtml += '<br>';
+        } else {
+          coloredHtml += char;
+        }
+      }
+      return coloredHtml;
+    }
+  
+    const asciiArt = `
+
+ `;
+
+
+
+ const asciiContainer = document.getElementById('ascii-container');
+  asciiContainer.innerHTML = colorAsciiArt(asciiArt);
+  asciiContainer.classList.add('levitate'); // <-- This adds the levitate effect
+</script>
+
+</body>
+</html>
