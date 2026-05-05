@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="sr">
+<head>
+<meta charset="utf-8" />
+<title>Matrix Snake — Hacker Terminal</title>
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<style>
+  html,body{margin:0;height:100%;background:#000;color:#e9b8ff;font-family:'Courier New',monospace;overflow:hidden}
+  #wrap{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+        background:radial-gradient(ellipse at center,#1a0030 0%,#000 70%);}
+  #hud{position:absolute;top:10px;left:0;right:0;display:flex;justify-content:space-between;padding:0 20px;
+       font-size:12px;letter-spacing:.2em;color:#e9b8ff;text-shadow:0 0 8px #ff4cff}
+  #stage{position:relative;border:1px solid rgba(200,80,255,.4);
+         box-shadow:inset 0 0 80px rgba(180,60,255,.45),0 0 60px rgba(180,60,255,.35);border-radius:6px}
+  canvas{display:block;position:absolute;inset:0;border-radius:6px}
+  #overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;
+           background:rgba(0,0,0,.55);backdrop-filter:blur(4px);border-radius:6px}
+  button{font-family:inherit;background:transparent;color:#fde0ff;border:1px solid #d97cff;padding:8px 22px;
+         cursor:pointer;border-radius:4px;letter-spacing:.15em}
+  button:hover{background:rgba(200,80,255,.2)}
+  h2{margin:0 0 12px;font-size:28px;color:#fbd5ff}
+  .glitch{text-shadow:2px 0 #ff00ea,-2px 0 #00ffff;animation:gl .4s infinite}
+  @keyframes gl{0%,100%{transform:translate(0,0)}20%{transform:translate(-2px,1px)}40%{transform:translate(2px,-1px)}
+                60%{transform:translate(-1px,-2px)}80%{transform:translate(1px,2px)}}
+</style>
+</head>
+<body>
+<div id="wrap">
+  <div id="hud"><span>◢ MATRIX://SNAKE.SYS ◣</span><span id="score">SCORE 0000 · BEST 0000</span></div>
+  <div id="stage">
+    <canvas id="bg"></canvas>
+    <canvas id="game"></canvas>
+    <canvas id="fx"></canvas>
+    <div id="overlay">
+      <h2>&gt; INITIATE_SNAKE.EXE</h2>
+      <p style="opacity:.8;font-size:13px">Arrows / WASD · SPACE to pause</p>
+      <button id="start">[ START ]</button>
+    </div>
+  </div>
+</div>
+<script>
+const COLS=48,ROWS=28,CELL=20,TICK=90,W=COLS*CELL,H=ROWS*CELL;
+const G="░▒▓█@#%&$*+=<>/\\|01アイウエオカキクケコサシスセソタチツテトナニヌネノ";
+const PG="◉◎●◍◐◑◒◓✦✶✷✸";
+const stage=document.getElementById('stage');stage.style.width=W+'px';stage.style.height=H+'px';
+const bg=document.getElementById('bg'),fx=document.getElementById('fx'),gm=document.getElementById('game');
+[bg,fx,gm].forEach(c=>{c.width=W;c.height=H;c.style.width=W+'px';c.style.height=H+'px';});
+const bx=bg.getContext('2d'),fxc=fx.getContext('2d'),gx=gm.getContext('2d');
+
+// matrix rain
+const colW=14,cols=Math.ceil(W/colW),drops=Array.from({length:cols},()=>Math.random()*H);
+function rain(){bx.fillStyle="rgba(8,0,16,.18)";bx.fillRect(0,0,W,H);bx.font="14px 'Courier New',monospace";
+  for(let i=0;i<cols;i++){const ch=G[Math.random()*G.length|0];bx.fillStyle="rgba(220,130,255,.9)";
+    bx.fillText(ch,i*colW,drops[i]);bx.fillStyle="rgba(255,200,255,.9)";bx.fillText(ch,i*colW,drops[i]);
+    drops[i]+=14;if(drops[i]>H&&Math.random()>.975)drops[i]=0;}requestAnimationFrame(rain);}rain();
+
+// fx
+function fxLoop(){fxc.clearRect(0,0,W,H);fxc.fillStyle="rgba(0,0,0,.18)";
+  for(let y=0;y<H;y+=3)fxc.fillRect(0,y,W,1);
+  const g=fxc.createRadialGradient(W/2,H/2,H*.3,W/2,H/2,H*.8);
+  g.addColorStop(0,"rgba(0,0,0,0)");g.addColorStop(1,"rgba(0,0,0,.85)");fxc.fillStyle=g;fxc.fillRect(0,0,W,H);
+  if(Math.random()<.04){const y=Math.random()*H;fxc.fillStyle="rgba(255,80,220,.15)";fxc.fillRect(0,y,W,2+Math.random()*6);}
+  requestAnimationFrame(fxLoop);}fxLoop();
+
+// game
+let snake,dir,nd,prey,score=0,best=+localStorage.snake_best||0,running=false,dead=false,t=0,shake=0,pops=[];
+function rc(){while(1){const c={x:Math.random()*COLS|0,y:Math.random()*ROWS|0};if(!snake.some(s=>s.x===c.x&&s.y===c.y))return c;}}
+function reset(){snake=[{x:10,y:14},{x:9,y:14},{x:8,y:14}];dir={x:1,y:0};nd={x:1,y:0};prey=rc();score=0;dead=false;running=true;hideOv();}
+function hud(){document.getElementById('score').textContent=`SCORE ${String(score).padStart(4,'0')} · BEST ${String(best).padStart(4,'0')}`;}
+function tick(){if(!running||dead)return;dir=nd;const h=snake[0],n={x:h.x+dir.x,y:h.y+dir.y};
+  if(n.x<0||n.y<0||n.x>=COLS||n.y>=ROWS||snake.some(s=>s.x===n.x&&s.y===n.y)){dead=true;shake=20;showOv(true);return;}
+  const ate=n.x===prey.x&&n.y===prey.y;snake.unshift(n);if(!ate)snake.pop();else{pops.push({x:prey.x,y:prey.y,t:0});prey=rc();shake=6;score+=10;if(score>best){best=score;localStorage.snake_best=best;}hud();}}
+setInterval(tick,TICK);
+function draw(){t++;gx.clearRect(0,0,W,H);gx.strokeStyle="rgba(120,40,200,.08)";gx.lineWidth=1;
+  for(let x=0;x<=COLS;x++){gx.beginPath();gx.moveTo(x*CELL,0);gx.lineTo(x*CELL,H);gx.stroke();}
+  for(let y=0;y<=ROWS;y++){gx.beginPath();gx.moveTo(0,y*CELL);gx.lineTo(W,y*CELL);gx.stroke();}
+  if(snake){gx.font="bold 18px 'Courier New',monospace";gx.textAlign="center";gx.textBaseline="middle";
+    snake.forEach((s,i)=>{const g=G[(t+i*3)%G.length],head=i===0;gx.shadowColor=head?"#ff4cff":"#a855f7";gx.shadowBlur=head?18:10;
+      const a=1-(i/snake.length)*.55;gx.fillStyle=head?`rgba(255,220,255,${a})`:`rgba(210,140,255,${a})`;
+      gx.fillText(g,s.x*CELL+CELL/2,s.y*CELL+CELL/2);});gx.shadowBlur=0;
+    const p=prey,pulse=.6+Math.sin(t*.18)*.4,pg=PG[(t/4|0)%PG.length];
+    gx.shadowColor="#ff2bd6";gx.shadowBlur=25*pulse+8;gx.font=`bold ${18+pulse*6}px 'Courier New',monospace`;
+    gx.fillStyle=`rgba(255,${100+pulse*100},255,1)`;gx.fillText(pg,p.x*CELL+CELL/2,p.y*CELL+CELL/2);
+    gx.strokeStyle=`rgba(255,80,220,${.4+pulse*.4})`;gx.lineWidth=2;gx.beginPath();gx.arc(p.x*CELL+CELL/2,p.y*CELL+CELL/2,8+pulse*6,0,Math.PI*2);gx.stroke();gx.shadowBlur=0;
+    pops=pops.filter(q=>q.t<20);pops.forEach(q=>{q.t++;gx.strokeStyle=`rgba(255,120,255,${1-q.t/20})`;gx.lineWidth=2;gx.beginPath();gx.arc(q.x*CELL+CELL/2,q.y*CELL+CELL/2,q.t*2,0,Math.PI*2);gx.stroke();});}
+  if(shake>0){gm.style.transform=`translate(${(Math.random()-.5)*shake}px,${(Math.random()-.5)*shake}px)`;shake--;}else gm.style.transform='translate(0,0)';
+  requestAnimationFrame(draw);}draw();hud();
+
+const ov=document.getElementById('overlay');
+function showOv(d){ov.style.display='flex';ov.innerHTML=d?`<h2 class="glitch">SYSTEM_FAILURE</h2><p>SCORE: ${score}</p><button id="start">[ REBOOT ]</button>`:`<h2>&gt; INITIATE_SNAKE.EXE</h2><p style="opacity:.8;font-size:13px">Arrows / WASD · SPACE to pause</p><button id="start">[ START ]</button>`;document.getElementById('start').onclick=reset;}
+function hideOv(){ov.style.display='none';}
+document.getElementById('start').onclick=reset;
+addEventListener('keydown',e=>{const k=e.key;if(k===' '){e.preventDefault();if(dead)reset();else running=!running;return;}
+  const set=(x,y)=>{if(dir.x===-x&&dir.y===-y)return;nd={x,y};};
+  if(k==='ArrowUp'||k==='w')set(0,-1);else if(k==='ArrowDown'||k==='s')set(0,1);
+  else if(k==='ArrowLeft'||k==='a')set(-1,0);else if(k==='ArrowRight'||k==='d')set(1,0);});
+</script>
+</body></html>
