@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ASCII Art Engine — Stefanov</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+
+  :root {
+    --bg: #0a0a0f;
+    --panel: #12121a;
+    --border: #2a2a3a;
+    --accent: #00ffe0;
+    --accent2: #ff2d6b;
+    --text: #c8ccd8;
+    --dim: #555870;
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 60px;
+    font-size: 15px;
+  }
+
+  h1 {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 6px;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 20px;
+    text-shadow: 0 0 18px rgba(0,255,224,0.35);
+  }
+
+  /* ─── UPLOAD ─── */
+  #dropZone {
+    width: 100%;
+    max-width: 860px;
+    border: 2px dashed var(--border);
+    border-radius: var(--radius);
+    padding: 22px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    color: var(--dim);
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  #dropZone:hover, #dropZone.drag { border-color: var(--accent); background: rgba(0,255,224,0.04); color: var(--accent); }
+  #imageInput { display: none; }
+
+  /* ─── CONTROLS ─── */
+  .controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+    width: 100%;
+    max-width: 860px;
+    margin: 16px 0;
+  }
+
+  .ctrl-group {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 12px 14px;
+  }
+
+  .ctrl-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 8px;
+  }
+  .ctrl-label span {
+    font-family: 'Share Tech Mono', monospace;
+    color: var(--accent);
+    font-size: 12px;
+    letter-spacing: 1px;
+  }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 4px;
+    background: var(--border);
+    border-radius: 2px;
+    outline: none;
+    cursor: pointer;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px rgba(0,255,224,0.5);
+    transition: transform .15s;
+  }
+  input[type=range]:hover::-webkit-slider-thumb { transform: scale(1.25); }
+
+  /* toggle */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .toggle-row label {
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+  }
+  .toggle {
+    position: relative;
+    width: 36px; height: 20px;
+    display: inline-block;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute; inset: 0;
+    background: var(--border);
+    border-radius: 20px;
+    cursor: pointer;
+    transition: background .2s;
+  }
+  .toggle-slider:before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    left: 3px; top: 3px;
+    background: var(--dim);
+    border-radius: 50%;
+    transition: transform .2s, background .2s;
+  }
+  .toggle input:checked + .toggle-slider { background: rgba(0,255,224,0.25); }
+  .toggle input:checked + .toggle-slider:before { transform: translateX(16px); background: var(--accent); }
+
+  /* ─── PALETTES ─── */
+  .palette-section {
+    width: 100%;
+    max-width: 860px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px;
+    margin-bottom: 12px;
+  }
+  .palette-section h3 {
+    font-size: 11px;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 10px;
+  }
+  .palette-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .pal-btn {
+    padding: 5px 12px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: border-color .15s, color .15s, background .15s;
+  }
+  .pal-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .pal-btn.active { border-color: var(--accent); background: rgba(0,255,224,0.1); color: var(--accent); }
+
+  .custom-pickers {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+    margin-top: 10px;
+  }
+  input[type=color] {
+    width: 34px; height: 24px;
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    background: none;
+    cursor: pointer;
+    padding: 1px;
+  }
+  .btn {
+    padding: 5px 14px;
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    background: var(--bg);
+    color: var(--accent);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: background .15s, border-color .15s;
+  }
+  .btn:hover { background: rgba(0,255,224,0.1); border-color: var(--accent); }
+  .btn.danger { color: var(--accent2); }
+  .btn.danger:hover { background: rgba(255,45,107,0.1); border-color: var(--accent2); }
+
+  /* ─── PREVIEW ─── */
+  .preview-wrap {
+    width: 100%;
+    max-width: 860px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .preview-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab-btn {
+    padding: 10px 20px;
+    background: none;
+    border: none;
+    color: var(--dim);
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color .15s, border-color .15s;
+  }
+  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); }
+
+  .tab-content { display: none; padding: 12px; }
+  .tab-content.active { display: block; }
+
+  #ascii, #asciiHTML {
+    font-family: 'Share Tech Mono', monospace;
+    white-space: pre;
+    line-height: 6px;
+    font-size: 6px;
+    background: #080810;
+    padding: 10px;
+    border-radius: 4px;
+    overflow: auto;
+    max-height: 60vh;
+  }
+
+  .save-row {
+    display: flex;
+    gap: 8px;
+    padding: 10px 12px;
+    border-top: 1px solid var(--border);
+  }
+
+  /* ─── LEGEND ─── */
+  #legend {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 3px;
+    margin: 10px 0 4px;
+    padding: 8px 12px;
+    background: #080810;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 860px;
+  }
+
+  /* status bar */
+  #status {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--dim);
+    margin: 6px 0;
+    letter-spacing: 1px;
+    height: 14px;
+  }
+</style>
+</head>
+<body>
+
+<h1>⬡ ASCII Art Engine</h1>
+
+<div id="dropZone">
+  <input type="file" id="imageInput" accept=".png,.jpg,.jpeg,.webp,.gif">
+  Drop image here or <u>click to upload</u>
+</div>
+
+<div id="status">— no image loaded —</div>
+
+<!-- CONTROLS -->
+<div class="controls">
+  <div class="ctrl-group">
+    <div class="ctrl-label">Width (chars) <span id="widthVal">300</span></div>
+    <input type="range" id="widthSlider" min="80" max="500" value="300">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Crop (height %) <span id="cropVal">100%</span></div>
+    <input type="range" id="cropSlider" min="10" max="100" value="100">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Brightness <span id="brightnessVal">0</span></div>
+    <input type="range" id="brightness" min="-100" max="100" value="0">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Contrast <span id="contrastVal">0</span></div>
+    <input type="range" id="contrast" min="-100" max="100" value="0">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Saturation <span id="satVal">1.0×</span></div>
+    <input type="range" id="saturation" min="0" max="3" step="0.05" value="1">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Sharpness <span id="sharpVal">0.0</span></div>
+    <input type="range" id="sharpness" min="0" max="5" step="0.1" value="0">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Unsharp Radius <span id="unsharpRadiusVal">1</span></div>
+    <input type="range" id="unsharpRadius" min="1" max="4" step="1" value="1">
+  </div>
+  <div class="ctrl-group">
+    <div class="ctrl-label">Export Scale <span id="scaleVal">0.5×</span></div>
+    <input type="range" id="exportScale" min="0.1" max="2.0" step="0.05" value="0.5">
+  </div>
+  <div class="ctrl-group">
+    <div class="toggle-row">
+      <label>Edge Detect (Sobel)</label>
+      <label class="toggle">
+        <input type="checkbox" id="edgeToggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div style="margin-top:10px;" class="toggle-row">
+      <label>Invert Ramp</label>
+      <label class="toggle">
+        <input type="checkbox" id="invertToggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+  <div class="ctrl-group">
+    <div class="toggle-row">
+      <label>Use Image Colors</label>
+      <label class="toggle">
+        <input type="checkbox" id="colorToggle" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div style="margin-top:10px;" class="toggle-row">
+      <label>Bold Ramp</label>
+      <label class="toggle">
+        <input type="checkbox" id="boldToggle">
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+  </div>
+</div>
+
+<!-- PALETTE -->
+<div class="palette-section">
+  <h3>Color Palette</h3>
+  <div class="palette-grid" id="paletteGrid"></div>
+  <div class="custom-pickers">
+    <input type="color" class="color-picker" value="#000000">
+    <input type="color" class="color-picker" value="#4B0082">
+    <input type="color" class="color-picker" value="#800080">
+    <input type="color" class="color-picker" value="#9400D3">
+    <input type="color" class="color-picker" value="#8A2BE2">
+    <input type="color" class="color-picker" value="#9370DB">
+    <input type="color" class="color-picker" value="#D8BFD8">
+    <input type="color" class="color-picker" value="#E6E6FA">
+    <button class="btn" id="applyColors">Apply</button>
+    <button class="btn" id="randomPalette">🎲 Random</button>
+    <button class="btn danger" id="resetBtn">Reset</button>
+  </div>
+  <div id="customPaletteRow" class="palette-grid" style="margin-top:8px;"></div>
+</div>
+
+<div id="legend"></div>
+
+<!-- PREVIEW -->
+<div class="preview-wrap">
+  <div class="preview-tabs">
+    <button class="tab-btn active" data-tab="colored">Colored HTML</button>
+    <button class="tab-btn" data-tab="plain">Plain Text</button>
+  </div>
+  <div class="tab-content active" id="tab-colored">
+    <div id="asciiHTML"></div>
+  </div>
+  <div class="tab-content" id="tab-plain">
+    <pre id="ascii"></pre>
+  </div>
+  <div class="save-row">
+    <button class="btn" id="saveHTMLBtn">⬇ Save HTML</button>
+    <button class="btn" id="saveBtn">⬇ Save TXT</button>
+  </div>
+</div>
+
+<canvas id="canvas" style="display:none;"></canvas>
+<canvas id="canvasOff" style="display:none;"></canvas>
+
+<script>
+// ─── DOM refs ─────────────────────────────────────────────────────────────────
+const imageInput       = document.getElementById('imageInput');
+const dropZone         = document.getElementById('dropZone');
+const canvas           = document.getElementById('canvas');
+const canvasOff        = document.getElementById('canvasOff');
+const ctx              = canvas.getContext('2d');
+const ctxOff           = canvasOff.getContext('2d');
+const asciiEl          = document.getElementById('ascii');
+const asciiHTMLEl      = document.getElementById('asciiHTML');
+const statusEl         = document.getElementById('status');
+const legendEl         = document.getElementById('legend');
+const colorPickers     = document.querySelectorAll('.color-picker');
+const customPaletteRow = document.getElementById('customPaletteRow');
+
+// ─── Slider wiring (label + redraw) ──────────────────────────────────────────
+const sliders = [
+  { id:'widthSlider',   label:'widthVal',        fmt: v => v },
+  { id:'cropSlider',    label:'cropVal',          fmt: v => v+'%' },
+  { id:'brightness',    label:'brightnessVal',    fmt: v => v },
+  { id:'contrast',      label:'contrastVal',      fmt: v => v },
+  { id:'saturation',    label:'satVal',           fmt: v => parseFloat(v).toFixed(2)+'×' },
+  { id:'sharpness',     label:'sharpVal',         fmt: v => parseFloat(v).toFixed(1) },
+  { id:'unsharpRadius', label:'unsharpRadiusVal', fmt: v => v },
+  { id:'exportScale',   label:'scaleVal',         fmt: v => parseFloat(v).toFixed(2)+'×' },
+];
+sliders.forEach(({ id, label, fmt }) => {
+  const el = document.getElementById(id);
+  const lbl = document.getElementById(label);
+  el.addEventListener('input', () => { lbl.textContent = fmt(el.value); drawAscii(); });
+});
+['edgeToggle','invertToggle','colorToggle','boldToggle'].forEach(id => {
+  document.getElementById(id).addEventListener('change', drawAscii);
+});
+
+// ─── ASCII ramps ──────────────────────────────────────────────────────────────
+const RAMP_NORMAL = ['@','%','#','*','+','=','-',':','.',` `];
+const RAMP_BOLD   = ['█','▓','▒','░','▪','▫','·',' '];
+
+// ─── Palettes ─────────────────────────────────────────────────────────────────
+const defaultColors = ['#000000','#4B0082','#800080','#9400D3','#8A2BE2','#9370DB','#D8BFD8','#E6E6FA'];
+let colorPalette = [...defaultColors];
+
+const PALETTES = {
+  'Purple':    ['#000000','#4B0082','#800080','#9400D3','#8A2BE2','#9370DB','#D8BFD8','#E6E6FA'],
+  'Red':       ['#000000','#330000','#660000','#990000','#CC0000','#FF3333','#FF6666','#FF9999'],
+  'Blue':      ['#000022','#000044','#000088','#0000CC','#0033FF','#3366FF','#66A3FF','#99CCFF'],
+  'Green':     ['#001100','#003300','#006600','#009900','#00CC00','#33FF33','#66FF66','#99FF99'],
+  'Gold':      ['#332200','#664400','#996600','#CC8800','#FFAA00','#FFCC33','#FFE066','#FFF5CC'],
+  'Sunset':    ['#2B0000','#661400','#993300','#CC5500','#FF7700','#FF9900','#FFB347','#FFD580'],
+  'Ocean':     ['#001F3F','#003366','#004C99','#0066CC','#0099CC','#33CCCC','#66FFFF','#CCFFFF'],
+  'Forest':    ['#0B130A','#1C3B1A','#2E562A','#417E3D','#5CA44C','#7FCA68','#A8E89B','#D4F7C4'],
+  'Neon':      ['#000000','#2E0854','#FF00FF','#00FFFF','#39FF14','#FFFF00','#FF1493','#FFFFFF'],
+  'Grayscale': ['#000000','#222222','#444444','#666666','#888888','#AAAAAA','#CCCCCC','#FFFFFF'],
+  'Cyberpunk': ['#0D0221','#550088','#8800FF','#FF0099','#FF003C','#FF6600','#FFD500','#00FFF7'],
+  'Mix':       ['#FF0000','#FF7F00','#FFFF00','#00FF00','#0000FF','#4B0082','#8F00FF','#FFFFFF'],
+};
+
+// Build palette buttons
+const paletteGrid = document.getElementById('paletteGrid');
+Object.keys(PALETTES).forEach(name => {
+  const btn = document.createElement('button');
+  btn.className = 'pal-btn';
+  btn.textContent = name;
+  btn.dataset.name = name;
+  btn.addEventListener('click', () => {
+    colorPalette = PALETTES[name];
+    colorPickers.forEach((p, i) => p.value = colorPalette[i] || '#000000');
+    document.querySelectorAll('.pal-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    drawAscii(); updateLegend();
+  });
+  paletteGrid.appendChild(btn);
+});
+
+document.getElementById('applyColors').addEventListener('click', () => {
+  colorPalette = Array.from(colorPickers).map(p => p.value);
+  document.querySelectorAll('.pal-btn').forEach(b => b.classList.remove('active'));
+  drawAscii(); updateLegend();
+});
+
+document.getElementById('randomPalette').addEventListener('click', () => {
+  colorPalette = Array.from({length: 8}, () =>
+    '#' + Math.floor(Math.random()*16777215).toString(16).padStart(6,'0'));
+  colorPickers.forEach((p, i) => p.value = colorPalette[i]);
+  drawAscii(); updateLegend();
+  addCustomPaletteButton([...colorPalette]);
+});
+
+document.getElementById('resetBtn').addEventListener('click', () => {
+  document.getElementById('widthSlider').value = 300;
+  document.getElementById('widthVal').textContent = 300;
+  document.getElementById('brightness').value = 0;
+  document.getElementById('brightnessVal').textContent = 0;
+  document.getElementById('contrast').value = 0;
+  document.getElementById('contrastVal').textContent = 0;
+  document.getElementById('saturation').value = 1;
+  document.getElementById('satVal').textContent = '1.00×';
+  document.getElementById('sharpness').value = 0;
+  document.getElementById('sharpVal').textContent = '0.0';
+  document.getElementById('unsharpRadius').value = 1;
+  document.getElementById('unsharpRadiusVal').textContent = 1;
+  document.getElementById('cropSlider').value = 100;
+  document.getElementById('cropVal').textContent = '100%';
+  document.getElementById('exportScale').value = 0.5;
+  document.getElementById('scaleVal').textContent = '0.50×';
+  document.getElementById('edgeToggle').checked = false;
+  document.getElementById('invertToggle').checked = false;
+  document.getElementById('colorToggle').checked = true;
+  document.getElementById('boldToggle').checked = false;
+  colorPalette = [...defaultColors];
+  colorPickers.forEach((p, i) => p.value = defaultColors[i]);
+  document.querySelectorAll('.pal-btn').forEach(b => b.classList.remove('active'));
+  drawAscii(); updateLegend();
+});
+
+function addCustomPaletteButton(palette) {
+  const btn = document.createElement('button');
+  btn.className = 'pal-btn';
+  btn.textContent = 'Custom ' + (customPaletteRow.children.length + 1);
+  btn.style.background = `linear-gradient(90deg, ${palette.join(',')})`;
+  btn.style.border = 'none';
+  btn.addEventListener('click', () => {
+    colorPalette = palette;
+    colorPickers.forEach((p, i) => p.value = palette[i] || '#000000');
+    drawAscii(); updateLegend();
+  });
+  customPaletteRow.appendChild(btn);
+}
+
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ─── Drop zone ────────────────────────────────────────────────────────────────
+dropZone.addEventListener('click', () => imageInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('drag'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('drag'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if (file) loadFile(file);
+});
+imageInput.addEventListener('change', function() { if (this.files[0]) loadFile(this.files[0]); });
+
+let img = new Image();
+function loadFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    img.onload = () => {
+      statusEl.textContent = `Loaded: ${img.width}×${img.height}px`;
+      drawAscii();
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─── IMAGE PROCESSING UTILS ───────────────────────────────────────────────────
+
+function applyContrastFn(v, color) {
+  const f = (259 * (v + 255)) / (255 * (259 - v));
+  return Math.min(255, Math.max(0, f * (color - 128) + 128));
+}
+
+/**
+ * Unsharp Mask:
+ *   sharpened = original + amount * (original - blurred)
+ * Blur is a simple box blur with given radius.
+ */
+function unsharpMask(data, width, height, amount, radius) {
+  if (amount === 0) return;
+  const blurred = boxBlur(data, width, height, radius);
+  for (let i = 0; i < data.length; i += 4) {
+    for (let c = 0; c < 3; c++) {
+      data[i+c] = Math.min(255, Math.max(0,
+        data[i+c] + amount * (data[i+c] - blurred[i+c])
+      ));
+    }
+  }
+}
+
+function boxBlur(data, width, height, radius) {
+  const out = new Uint8ClampedArray(data.length);
+  const r = Math.max(1, radius | 0);
+  // Horizontal pass
+  const tmp = new Uint8ClampedArray(data.length);
+  for (let y = 0; y < height; y++) {
+    for (let x = 0; x < width; x++) {
+      let sr=0, sg=0, sb=0, cnt=0;
+      for (let dx = -r; dx <= r; dx++) {
+        const nx = Math.min(width-1, Math.max(0, x+dx));
+        const i = (y*width+nx)*4;
+        sr += data[i]; sg += data[i+1]; sb += data[i+2]; cnt++;
+      }
+      const i = (y*width+x)*4;
+      tmp[i]   = sr/cnt; tmp[i+1] = sg/cnt; tmp[i+2] = sb/cnt; tmp[i+3] = data[i+3];
+    }
+  }
+  // Vertical pass
+  for (let x = 0; x < width; x++) {
+    for (let y = 0; y < height; y++) {
+      let sr=0, sg=0, sb=0, cnt=0;
+      for (let dy = -r; dy <= r; dy++) {
+        const ny = Math.min(height-1, Math.max(0, y+dy));
+        const i = (ny*width+x)*4;
+        sr += tmp[i]; sg += tmp[i+1]; sb += tmp[i+2]; cnt++;
+      }
+      const i = (y*width+x)*4;
+      out[i]   = sr/cnt; out[i+1] = sg/cnt; out[i+2] = sb/cnt; out[i+3] = data[i+3];
+    }
+  }
+  return out;
+}
+
+/**
+ * Sobel edge detection → returns grayscale edge magnitude array (0-255).
+ */
+function sobelEdges(data, width, height) {
+  const edges = new Float32Array(width * height);
+  const gx = [[-1,0,1],[-2,0,2],[-1,0,1]];
+  const gy = [[-1,-2,-1],[0,0,0],[1,2,1]];
+  for (let y=1; y<height-1; y++) {
+    for (let x=1; x<width-1; x++) {
+      let sx=0, sy=0;
+      for (let ky=-1; ky<=1; ky++) for (let kx=-1; kx<=1; kx++) {
+        const i = ((y+ky)*width+(x+kx))*4;
+        const lum = 0.299*data[i] + 0.587*data[i+1] + 0.114*data[i+2];
+        sx += lum * gx[ky+1][kx+1];
+        sy += lum * gy[ky+1][kx+1];
+      }
+      edges[y*width+x] = Math.sqrt(sx*sx+sy*sy);
+    }
+  }
+  // normalize
+  let maxE = 0;
+  for (let i=0; i<edges.length; i++) if(edges[i]>maxE) maxE=edges[i];
+  if (maxE > 0) for (let i=0; i<edges.length; i++) edges[i] = edges[i]/maxE*255;
+  return edges;
+}
+
+/**
+ * Saturation adjustment in-place.
+ */
+function applySaturation(data, factor) {
+  for (let i=0; i<data.length; i+=4) {
+    const r = data[i], g = data[i+1], b = data[i+2];
+    const gray = 0.299*r + 0.587*g + 0.114*b;
+    data[i]   = Math.min(255, Math.max(0, gray + (r-gray)*factor));
+    data[i+1] = Math.min(255, Math.max(0, gray + (g-gray)*factor));
+    data[i+2] = Math.min(255, Math.max(0, gray + (b-gray)*factor));
+  }
+}
+
+// ─── MAIN DRAW ─────────────────────────────────────────────────────────────────
+function drawAscii() {
+  if (!img.src || !img.complete || !img.naturalWidth) return;
+
+  const width       = parseInt(document.getElementById('widthSlider').value);
+  const cropPct     = parseInt(document.getElementById('cropSlider').value);
+  const brightness  = parseInt(document.getElementById('brightness').value);
+  const contrast    = parseInt(document.getElementById('contrast').value);
+  const saturation  = parseFloat(document.getElementById('saturation').value);
+  const sharpness   = parseFloat(document.getElementById('sharpness').value);
+  const unsharpRad  = parseInt(document.getElementById('unsharpRadius').value);
+  const useEdge     = document.getElementById('edgeToggle').checked;
+  const invertRamp  = document.getElementById('invertToggle').checked;
+  const useImgColor = document.getElementById('colorToggle').checked;
+  const boldRamp    = document.getElementById('boldToggle').checked;
+
+  const asciiRamp = boldRamp ? RAMP_BOLD : RAMP_NORMAL;
+
+  const visibleHeight = (img.height * cropPct) / 100;
+  const scale  = width / img.width;
+  const height = Math.floor(visibleHeight * scale);
+
+  canvas.width  = width;
+  canvas.height = height;
+  ctx.drawImage(img, 0, 0, img.width, visibleHeight, 0, 0, width, height);
+
+  const imageData = ctx.getImageData(0, 0, width, height);
+  let data = imageData.data;
+
+  // 1. Unsharp mask (high-quality sharpening)
+  if (sharpness > 0) unsharpMask(data, width, height, sharpness, unsharpRad);
+
+  // 2. Saturation
+  if (saturation !== 1) applySaturation(data, saturation);
+
+  // 3. Sobel edges (computed before brightness/contrast distort lum)
+  let edges = null;
+  if (useEdge) edges = sobelEdges(data, width, height);
+
+  // 4. Brightness + contrast
+  for (let i=0; i<data.length; i+=4) {
+    for (let c=0; c<3; c++) {
+      let v = Math.min(255, Math.max(0, data[i+c] + brightness));
+      v = applyContrastFn(contrast, v);
+      data[i+c] = v;
+    }
+  }
+
+  // ─── Build ASCII ─────────────────────────────────────────────────────────────
+  let ascii = '', htmlAscii = '';
+  const rampLen = asciiRamp.length;
+
+  for (let y=0; y<height; y++) {
+    for (let x=0; x<width; x++) {
+      const idx = (y*width+x)*4;
+      const r = data[idx], g = data[idx+1], b = data[idx+2];
+
+      let lum;
+      if (useEdge && edges) {
+        // blend: 60% edge, 40% brightness
+        const baseLum = 0.299*r + 0.587*g + 0.114*b;
+        lum = edges[y*width+x] * 0.6 + baseLum * 0.4;
+      } else {
+        lum = 0.299*r + 0.587*g + 0.114*b;
+      }
+
+      let ci = Math.floor((lum / 255) * (rampLen - 1));
+      ci = Math.min(rampLen-1, Math.max(0, ci));
+      if (invertRamp) ci = (rampLen-1) - ci;
+      const char = asciiRamp[ci];
+
+      // Color
+      let color;
+      if (useImgColor) {
+        color = `rgb(${r},${g},${b})`;
+      } else {
+        const palIdx = Math.floor((lum/255)*(colorPalette.length-1));
+        color = colorPalette[Math.min(palIdx, colorPalette.length-1)];
+      }
+
+      ascii += char;
+      htmlAscii += `<span style="color:${color}">${char === '&' ? '&amp;' : char === '<' ? '&lt;' : char}</span>`;
+    }
+    ascii    += '\n';
+    htmlAscii += '<br>';
+  }
+
+  asciiEl.textContent = ascii;
+  asciiHTMLEl.innerHTML = htmlAscii;
+
+  const pct = Math.round(width * height / 1000);
+  statusEl.textContent = `${width}×${height} chars — ${pct}k cells — ` + (useEdge ? 'Sobel edges on' : 'standard lum');
+  updateLegend();
+}
+
+function updateLegend() {
+  const ramp = document.getElementById('boldToggle').checked ? RAMP_BOLD : RAMP_NORMAL;
+  legendEl.innerHTML = ramp.map((c, i) => {
+    const colIdx = Math.floor(i / (ramp.length-1) * (colorPalette.length-1));
+    const col = colorPalette[Math.min(colIdx, colorPalette.length-1)];
+    return `<span style="color:${col}">${c === ' ' ? '·' : c}</span>`;
+  }).join(' ');
+}
+
+// ─── Save ─────────────────────────────────────────────────────────────────────
+document.getElementById('saveBtn').addEventListener('click', () => {
+  const blob = new Blob([asciiEl.textContent], { type:'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'ascii_art.txt';
+  a.click();
+});
+
+document.getElementById('saveHTMLBtn').addEventListener('click', () => {
+  const scale = parseFloat(document.getElementById('exportScale').value);
+  const htmlContent = `<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"><title>ASCII Art</title>
+<style>
+body { background:#0a0a0f; margin:0; padding:20px; transform:scale(${scale}); transform-origin:top left; }
+.art { font-family:monospace; white-space:pre; line-height:6px; font-size:6px; }
+</style></head>
+<body><div class="art">${asciiHTMLEl.innerHTML}</div></body>
+</html>`;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([htmlContent], {type:'text/html'}));
+  a.download = 'ascii_art.html';
+  a.click();
+});
+
+updateLegend();
+</script>
+</body>
+</html>
